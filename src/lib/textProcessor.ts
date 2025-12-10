@@ -1,6 +1,6 @@
 
 export const PUNCTUATION_MAP: Record<string, string> = {
-    " punto y aparte": ".\n\n",
+    " punto y aparte": ".\\n\\n",
     " punto y seguido": ". ",
     " punto": ".",
     " coma": ",",
@@ -30,8 +30,14 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     let processed = text;
 
     // 0. User Vocabulary Replacements (Pre-punctuation)
-    Object.entries(userReplacements).forEach(([original, replacement]) => {
-        const regex = new RegExp(`\\b${original}\\b`, "gi");
+    // Sort by length (descending) to match longer phrases first
+    const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
+
+    sortedReplacements.forEach(([original, replacement]) => {
+        // Escape special regex characters in the original text
+        const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Use case-insensitive replacement
+        const regex = new RegExp(escaped, "gi");
         processed = processed.replace(regex, replacement);
     });
 
