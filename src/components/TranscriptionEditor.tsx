@@ -7,7 +7,7 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { VocabularySettings } from '@/components/VocabularySettings';
 import { TemplateManager } from '@/components/TemplateManager';
-import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check } from 'lucide-react';
+import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -79,6 +79,11 @@ export function TranscriptionEditor() {
         const regex = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
         const newText = fullText.replace(regex, replacement);
         setFullText(newText);
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
     };
 
     const handleInsertTemplate = useCallback((content: string) => {
@@ -190,6 +195,13 @@ export function TranscriptionEditor() {
                         title="Diccionario"
                     >
                         <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-800"
+                        title="Cerrar sesión"
+                    >
+                        <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-red-600" />
                     </button>
                 </div>
             </header>
