@@ -7,7 +7,7 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { VocabularySettings } from '@/components/VocabularySettings';
 import { TemplateManager } from '@/components/TemplateManager';
-import { Mic, Square, Trash2, Settings, FileText } from 'lucide-react';
+import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -25,6 +25,8 @@ export function TranscriptionEditor() {
 
     const [showSettings, setShowSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const [fullText, setFullText] = useState('');
     const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
@@ -38,6 +40,15 @@ export function TranscriptionEditor() {
     useEffect(() => { fullTextRef.current = fullText; }, [fullText]);
     useEffect(() => { selectionRangeRef.current = selectionRange; }, [selectionRange]);
 
+    // Dark mode effect
+    useEffect(() => {
+        if (darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [darkMode]);
+
     // Track selection changes
     const handleSelect = () => {
         if (textareaRef.current) {
@@ -45,6 +56,14 @@ export function TranscriptionEditor() {
                 start: textareaRef.current.selectionStart,
                 end: textareaRef.current.selectionEnd
             });
+        }
+    };
+
+    const handleCopyToClipboard = async () => {
+        if (fullText) {
+            await navigator.clipboard.writeText(fullText);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
         }
     };
 
@@ -59,13 +78,11 @@ export function TranscriptionEditor() {
         setSelectionRange({ start: newPos, end: newPos });
 
         setShowTemplates(false);
-        // Restore focus next tick
         setTimeout(() => {
             textareaRef.current?.focus();
-            // Manually set cursor for robustness
             textareaRef.current?.setSelectionRange(newPos, newPos);
         }, 0);
-    }, []); // No deps needed due to refs
+    }, []);
 
     // Main Transcription Logic
     useEffect(() => {
@@ -73,9 +90,7 @@ export function TranscriptionEditor() {
             const prevText = fullTextRef.current;
             const range = selectionRangeRef.current || { start: prevText.length, end: prevText.length };
 
-            // Determine context for capitalization (text before insertion point)
             const context = prevText.substring(0, range.start);
-
             let processedText = processTranscriptSegment(lastEvent.text, replacements, context);
 
             // Voice Command: Template Insertion
@@ -88,31 +103,25 @@ export function TranscriptionEditor() {
                 }
             }
 
-            // Logic: Replace the selected range with the new text
             let before = prevText.substring(0, range.start);
             const after = prevText.substring(range.end);
 
-            // 1. Punctuation Gluing: If new text starts with punctuation, remove trailing space from 'before'
             if (/^[.,:;?!]/.test(processedText)) {
                 before = before.trimEnd();
             }
 
-            // 2. Newline Trimming: If before ends with newline (and optional spaces), remove ALL leading whitespace from new text
             if (/\n\s*$/.test(before)) {
                 processedText = processedText.trimStart();
             }
 
-            // 3. Double Space Prevention & Space Insertion
             if (before.endsWith(' ') && processedText.startsWith(' ')) {
                 processedText = processedText.trimStart();
             } else if (!before.endsWith(' ') && !before.endsWith('\n') && !processedText.startsWith(' ') && before.trim().length > 0 && !/[.\n]$/.test(before.trim())) {
-                // Add space if appending to a word without space/punctuation AND new text is not punctuation/newline
                 if (!/^[.,:;?!]/.test(processedText) && !processedText.startsWith('\n')) {
                     processedText = ' ' + processedText;
                 }
             }
 
-            // 4. Trailing Space Logic: If 'after' text exists and starts with a letter/number (not punctuation/space), ensure we have a space.
             if (after && !after.startsWith(' ') && !/^[.,:;?!?\n]/.test(after)) {
                 if (!processedText.endsWith(' ')) {
                     processedText += ' ';
@@ -131,72 +140,85 @@ export function TranscriptionEditor() {
     // Sync DOM selection
     useEffect(() => {
         if (selectionRange && textareaRef.current) {
-            // Only update if currently focused or we just dictated? 
-            // If user clicks away, we might not want to steal focus back?
-            // But if they are dictating, they likely want it.
             if (document.activeElement === textareaRef.current) {
                 textareaRef.current.setSelectionRange(selectionRange.start, selectionRange.end);
                 textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
             }
         }
-    }, [selectionRange, fullText]); // Sync when text or range updates
+    }, [selectionRange, fullText]);
 
     return (
-        <div className="flex flex-col h-full max-w-4xl mx-auto p-6 space-y-6">
-            <header className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex flex-col h-full max-w-5xl mx-auto p-6 space-y-6">
+            <header className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                        Voice Scribe
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Voz a texto online
                     </h1>
-                    <p className="text-sm text-gray-500">Transcripción y Edición Inteligente</p>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+                        title={darkMode ? "Modo claro" : "Modo oscuro"}
+                    >
+                        {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-gray-600" />}
+                    </button>
                     <button
                         onClick={() => setShowTemplates(!showTemplates)}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
                         title="Plantillas"
                     >
-                        <FileText className="w-5 h-5 text-gray-600" />
+                        <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
                     <button
                         onClick={() => setShowSettings(!showSettings)}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
                         title="Diccionario"
                     >
-                        <Settings className="w-5 h-5 text-gray-600" />
+                        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
                 </div>
             </header>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm border border-red-200 dark:border-red-800">
                     {error}
                 </div>
             )}
 
-            <main className="flex-1 relative bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col min-h-[500px]">
+            <main className="flex-1 relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col min-h-[500px]">
                 {/* Toolbar */}
-                <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                    <div className="flex space-x-1">
+                <div className="flex items-center justify-between px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex space-x-2">
                         <button
                             onClick={() => { setFullText(''); setSelectionRange({ start: 0, end: 0 }); }}
-                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-red-200 dark:hover:border-red-800"
                             title="Borrar todo"
                         >
                             <Trash2 className="w-4 h-4" />
+                            <span className="text-sm font-medium">Borrar</span>
+                        </button>
+                        <button
+                            onClick={handleCopyToClipboard}
+                            disabled={!fullText}
+                            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Copiar al portapapeles"
+                        >
+                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                            <span className="text-sm font-medium">{copied ? 'Copiado' : 'Copiar'}</span>
                         </button>
                     </div>
-                    <div className={`text-xs font-medium px-2 py-1 rounded-full ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-500'}`}>
-                        {isListening ? 'GRABANDO' : 'LISTO'}
+                    <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                        {isListening ? '● GRABANDO' : 'LISTO'}
                     </div>
                 </div>
 
                 {/* Editor Area */}
-                <div className="relative flex-1 p-4">
+                <div className="relative flex-1 p-6">
                     <textarea
                         ref={textareaRef}
                         className="w-full h-full resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
-                        placeholder="Pulsa el micrófono para empezar dictar... Selecciona texto para re-dictar encima."
+                        placeholder="Pulsa el micrófono para empezar a dictar..."
                         value={fullText}
                         onChange={(e) => {
                             setFullText(e.target.value);
@@ -208,11 +230,11 @@ export function TranscriptionEditor() {
                     />
 
                     {showSettings && (
-                        <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md relative animate-in fade-in zoom-in duration-200">
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
                                 <button
                                     onClick={() => setShowSettings(false)}
-                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
@@ -222,8 +244,8 @@ export function TranscriptionEditor() {
                     )}
 
                     {showTemplates && (
-                        <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
                                 <TemplateManager onClose={() => setShowTemplates(false)} onInsert={handleInsertTemplate} />
                             </div>
                         </div>
@@ -231,7 +253,7 @@ export function TranscriptionEditor() {
 
                     {/* Interim Overlay */}
                     {isListening && interimResult && (
-                        <div className="absolute bottom-4 left-4 right-4 bg-black/5 backdrop-blur-sm p-2 rounded text-gray-600 italic pointer-events-none border-l-4 border-blue-500">
+                        <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic pointer-events-none border-l-4 border-blue-500 shadow-lg">
                             {interimResult}
                         </div>
                     )}
@@ -242,16 +264,16 @@ export function TranscriptionEditor() {
                 <button
                     onClick={isListening ? stopListening : startListening}
                     className={twMerge(
-                        "group relative flex items-center justify-center w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-200",
+                        "group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4",
                         isListening
-                            ? "bg-red-500 hover:bg-red-600 shadow-red-500/30"
-                            : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/30"
+                            ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/50 focus:ring-red-200"
+                            : "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/50 focus:ring-blue-200"
                     )}
                 >
                     {isListening ? (
-                        <Square className="w-6 h-6 text-white fill-current" />
+                        <Square className="w-8 h-8 text-white fill-current" />
                     ) : (
-                        <Mic className="w-8 h-8 text-white" />
+                        <Mic className="w-10 h-10 text-white" />
                     )}
 
                     {/* Pulse effect ring */}
