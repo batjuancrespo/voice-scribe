@@ -7,6 +7,7 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { VocabularySettings } from '@/components/VocabularySettings';
 import { TemplateManager } from '@/components/TemplateManager';
+import { supabase } from '@/lib/supabaseClient';
 import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
