@@ -7,6 +7,7 @@ export interface Template {
     id: string;
     name: string;
     content: string;
+    category?: string;
 }
 
 export const useTemplates = () => {
@@ -19,7 +20,9 @@ export const useTemplates = () => {
 
             const { data, error } = await supabase
                 .from('templates')
-                .select('*');
+                .select('*')
+                .order('category', { ascending: true })
+                .order('name', { ascending: true });
 
             if (error) {
                 console.error("Error fetching templates:", error);
@@ -34,19 +37,17 @@ export const useTemplates = () => {
         fetchTemplates();
     }, []);
 
-    const addTemplate = async (name: string, content: string) => {
+    const addTemplate = async (name: string, content: string, category: string = 'General') => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
-
-        // Optimistic update handled after DB return to get real ID, 
-        // OR generate checking ID client side. Let's wait for DB for stronger consistency.
 
         const { data, error } = await supabase
             .from('templates')
             .insert({
                 user_id: session.user.id,
                 name,
-                content
+                content,
+                category
             })
             .select()
             .single();
