@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function Auth() {
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,17 +18,26 @@ export default function Auth() {
 
         if (isSignUp) {
             // Sign up new user
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
+                options: {
+                    emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+                }
             });
 
             if (error) {
                 setMessage({ type: 'error', text: error.message });
             } else {
-                setMessage({ type: 'success', text: '¡Cuenta creada! Ya puedes iniciar sesión.' });
-                setIsSignUp(false);
-                setPassword('');
+                // Check if email confirmation is required
+                if (data.user && !data.session) {
+                    setMessage({
+                        type: 'info',
+                        text: '¡Cuenta creada! Revisa tu correo para confirmar tu email antes de iniciar sesión.'
+                    });
+                } else {
+                    setMessage({ type: 'success', text: '¡Cuenta creada e iniciada sesión correctamente!' });
+                }
             }
         } else {
             // Sign in existing user
@@ -38,7 +47,14 @@ export default function Auth() {
             });
 
             if (error) {
-                setMessage({ type: 'error', text: 'Email o contraseña incorrectos' });
+                if (error.message.includes('Email not confirmed')) {
+                    setMessage({
+                        type: 'error',
+                        text: 'Debes confirmar tu email antes de iniciar sesión. Revisa tu correo.'
+                    });
+                } else {
+                    setMessage({ type: 'error', text: 'Email o contraseña incorrectos' });
+                }
             }
         }
         setLoading(false);
@@ -57,8 +73,14 @@ export default function Auth() {
                 </div>
 
                 {message && (
-                    <div className={`p-4 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'}`}>
-                        {message.text}
+                    <div className={`p-4 rounded-xl text-sm flex items-start space-x-2 ${message.type === 'success'
+                            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                            : message.type === 'info'
+                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                        }`}>
+                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>{message.text}</span>
                     </div>
                 )}
 
@@ -107,7 +129,7 @@ export default function Auth() {
                     </button>
                 </form>
 
-                <div className="text-center">
+                <div className="text-center space-y-2">
                     <button
                         onClick={() => {
                             setIsSignUp(!isSignUp);
@@ -117,6 +139,11 @@ export default function Auth() {
                     >
                         {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                     </button>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+                        💡 Tip: Si no puedes entrar después de crear tu cuenta, revisa tu correo para confirmar el email,
+                        o desactiva la confirmación en Supabase → Authentication → Email Provider
+                    </p>
                 </div>
             </div>
         </div>
