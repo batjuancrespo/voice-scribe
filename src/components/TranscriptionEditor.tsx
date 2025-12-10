@@ -26,7 +26,7 @@ export function TranscriptionEditor() {
 
     const [showSettings, setShowSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [copied, setCopied] = useState(false);
 
     const [fullText, setFullText] = useState('');
