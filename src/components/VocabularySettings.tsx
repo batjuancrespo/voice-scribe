@@ -1,17 +1,35 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVocabulary } from '@/hooks/useVocabulary';
 import { Plus, X, Book } from 'lucide-react';
 
-export function VocabularySettings() {
+interface VocabularySettingsProps {
+    selectedText?: string;
+    onCorrect?: (original: string, replacement: string) => void;
+}
+
+export function VocabularySettings({ selectedText, onCorrect }: VocabularySettingsProps) {
     const { replacements, addReplacement, removeReplacement } = useVocabulary();
     const [original, setOriginal] = useState('');
     const [replacement, setReplacement] = useState('');
 
-    const handleAdd = () => {
+    // Auto-fill selected text when component opens
+    useEffect(() => {
+        if (selectedText && selectedText.trim()) {
+            setOriginal(selectedText.trim());
+        }
+    }, [selectedText]);
+
+    const handleAdd = async () => {
         if (original && replacement) {
-            addReplacement(original, replacement);
+            await addReplacement(original, replacement);
+
+            // Apply correction to current text if callback provided
+            if (onCorrect) {
+                onCorrect(original, replacement);
+            }
+
             setOriginal('');
             setReplacement('');
         }
@@ -31,6 +49,11 @@ export function VocabularySettings() {
             </h2>
             <div className="space-y-6">
                 <div className="space-y-3">
+                    {selectedText && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-sm text-blue-800 dark:text-blue-200">
+                            <strong>Texto seleccionado:</strong> "{selectedText}"
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -54,6 +77,7 @@ export function VocabularySettings() {
                                 value={replacement}
                                 onChange={(e) => setReplacement(e.target.value)}
                                 onKeyPress={handleKeyPress}
+                                autoFocus={!!selectedText}
                             />
                         </div>
                     </div>
@@ -63,7 +87,7 @@ export function VocabularySettings() {
                         className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-blue-500/30"
                     >
                         <Plus className="w-5 h-5" />
-                        <span>Añadir corrección</span>
+                        <span>{onCorrect ? 'Añadir y aplicar al texto' : 'Añadir corrección'}</span>
                     </button>
                 </div>
 

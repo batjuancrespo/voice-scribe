@@ -67,6 +67,20 @@ export function TranscriptionEditor() {
         }
     };
 
+    const getSelectedText = () => {
+        if (selectionRange && selectionRange.start !== selectionRange.end) {
+            return fullText.substring(selectionRange.start, selectionRange.end);
+        }
+        return '';
+    };
+
+    const handleApplyCorrection = (original: string, replacement: string) => {
+        // Replace all occurrences of the original text with the replacement (case insensitive)
+        const regex = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        const newText = fullText.replace(regex, replacement);
+        setFullText(newText);
+    };
+
     const handleInsertTemplate = useCallback((content: string) => {
         const prev = fullTextRef.current;
         const range = selectionRangeRef.current || { start: prev.length, end: prev.length };
@@ -238,7 +252,10 @@ export function TranscriptionEditor() {
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
-                                <VocabularySettings />
+                                <VocabularySettings
+                                    selectedText={getSelectedText()}
+                                    onCorrect={handleApplyCorrection}
+                                />
                             </div>
                         </div>
                     )}
