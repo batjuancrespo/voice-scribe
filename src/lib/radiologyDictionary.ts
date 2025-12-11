@@ -192,8 +192,6 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "oblicuo": "oblicuo",
     "tridimensional": "3D",
     "reconstrucción multiplanar": "reconstrucción multiplanar",
-    "MPR": "MPR",
-    "MIP": "MIP",
     "volumen rendering": "volumen rendering",
 
     // Patología Específica
