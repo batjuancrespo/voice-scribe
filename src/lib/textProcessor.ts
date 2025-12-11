@@ -2,7 +2,7 @@ import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
 import { convertTextNumbersToDigits, processMedicalMeasurements } from './numberConverter';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
-    " punto y aparte": ".\n\n",
+    " punto y aparte": ".\n",
     " punto y seguido": ". ",
     " punto": ".",
     " coma": ",",
