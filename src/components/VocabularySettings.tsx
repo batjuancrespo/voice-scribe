@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useVocabulary } from '@/hooks/useVocabulary';
-import { Plus, X, Book } from 'lucide-react';
+import { Plus, X, Book, Edit2 } from 'lucide-react';
 
 interface VocabularySettingsProps {
     selectedText?: string;
@@ -10,29 +10,49 @@ interface VocabularySettingsProps {
 }
 
 export function VocabularySettings({ selectedText, onCorrect }: VocabularySettingsProps) {
-    const { replacements, addReplacement, removeReplacement } = useVocabulary();
+    const { replacements, addReplacement, removeReplacement, updateReplacement } = useVocabulary();
     const [original, setOriginal] = useState('');
     const [replacement, setReplacement] = useState('');
+    const [editingEntry, setEditingEntry] = useState<{ original: string; replacement: string } | null>(null);
 
     // Auto-fill selected text when component opens
     useEffect(() => {
-        if (selectedText && selectedText.trim()) {
+        if (selectedText && selectedText.trim() && !editingEntry) {
             setOriginal(selectedText.trim());
         }
-    }, [selectedText]);
+    }, [selectedText, editingEntry]);
 
     const handleAdd = async () => {
         if (original && replacement) {
-            await addReplacement(original, replacement);
+            if (editingEntry) {
+                // Update existing entry
+                await updateReplacement(editingEntry.original, original, replacement);
+                setEditingEntry(null);
+            } else {
+                // Add new entry
+                await addReplacement(original, replacement);
 
-            // Apply correction to current text if callback provided
-            if (onCorrect) {
-                onCorrect(original, replacement);
+                // Apply correction to current text if callback provided
+                if (onCorrect) {
+                    onCorrect(original, replacement);
+                }
             }
 
             setOriginal('');
             setReplacement('');
         }
+    };
+
+    const handleStartEdit = (orig: string, repl: string) => {
+        setEditingEntry({ original: orig, replacement: repl });
+        setOriginal(orig);
+        setReplacement(repl);
+    };
+
+    const handleCancel = () => {
+        setEditingEntry(null);
+        setOriginal('');
+        setReplacement('');
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -81,14 +101,24 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                             />
                         </div>
                     </div>
-                    <button
-                        onClick={handleAdd}
-                        disabled={!original || !replacement}
-                        className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-blue-500/30"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span>{onCorrect ? 'Añadir y aplicar al texto' : 'Añadir corrección'}</span>
-                    </button>
+                    <div className="flex space-x-2">
+                        {editingEntry && (
+                            <button
+                                onClick={handleCancel}
+                                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-all"
+                            >
+                                Cancelar
+                            </button>
+                        )}
+                        <button
+                            onClick={handleAdd}
+                            disabled={!original || !replacement}
+                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all shadow-lg flex items-center"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            {editingEntry ? 'Actualizar' : (onCorrect ? 'Añadir y aplicar al texto' : 'Añadir')}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
@@ -101,20 +131,33 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                                 No hay correcciones guardadas.
                             </p>
                         )}
-                        {Object.entries(replacements).map(([key, val]) => (
-                            <div key={key} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors border border-gray-200 dark:border-gray-700">
-                                <span className="text-sm flex items-center space-x-3">
-                                    <span className="font-semibold text-red-500 dark:text-red-400 px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded-lg">{key}</span>
-                                    <span className="text-gray-400">→</span>
-                                    <span className="font-semibold text-green-600 dark:text-green-400 px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-lg">{val}</span>
-                                </span>
-                                <button
-                                    onClick={() => removeReplacement(key)}
-                                    className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                    title="Eliminar"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                        {Object.entries(replacements).map(([orig, val]) => (
+                            <div key={orig} className="flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group">
+                                <div className="flex-1">
+                                    <span className="font-mono text-gray-700 dark:text-gray-300">
+                                        {orig}
+                                    </span>
+                                    <span className="text-gray-500 dark:text-gray-400 mx-3">→</span>
+                                    <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                        {replacements[orig]}
+                                    </span>
+                                </div>
+                                <div className="flex space-x-1">
+                                    <button
+                                        onClick={() => handleStartEdit(orig, replacements[orig])}
+                                        className="p-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                        title="Editar"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => removeReplacement(orig)}
+                                        className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                        title="Eliminar"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
