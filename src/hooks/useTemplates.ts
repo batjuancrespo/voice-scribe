@@ -3,11 +3,23 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+export interface TemplateField {
+    id: string;
+    template_id: string;
+    field_name: string;
+    default_text: string;
+    section: string;
+    display_order: number;
+    is_required: boolean;
+}
+
 export interface Template {
     id: string;
     name: string;
     content: string;
     category?: string;
+    template_type?: 'simple' | 'structured';
+    fields?: TemplateField[];
 }
 
 export const useTemplates = () => {
@@ -18,19 +30,38 @@ export const useTemplates = () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
-            const { data, error } = await supabase
+            const { data: templatesData, error: templatesError } = await supabase
                 .from('templates')
                 .select('*')
                 .order('category', { ascending: true })
                 .order('name', { ascending: true });
 
-            if (error) {
-                console.error("Error fetching templates:", error);
+            if (templatesError) {
+                console.error("Error fetching templates:", templatesError);
                 return;
             }
 
-            if (data) {
-                setTemplates(data as Template[]);
+            if (templatesData) {
+                // For structured templates, fetch their fields
+                const templatesWithFields = await Promise.all(
+                    templatesData.map(async (template) => {
+                        if (template.template_type === 'structured') {
+                            const { data: fieldsData } = await supabase
+                                .from('template_fields')
+                                .select('*')
+                                .eq('template_id', template.id)
+                                .order('display_order', { ascending: true });
+
+                            return {
+                                ...template,
+                                fields: fieldsData || []
+                            } as Template;
+                        }
+                        return template as Template;
+                    })
+                );
+
+                setTemplates(templatesWithFields);
             }
         };
 
