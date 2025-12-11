@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
-import { Plus, Trash, FileText, Copy, FolderOpen, Edit2 } from 'lucide-react';
+import { Plus, Trash, FileText, Copy, FolderOpen, Edit2, List } from 'lucide-react';
+import { TemplateFieldEditor } from './TemplateFieldEditor';
+import { supabase } from '@/lib/supabaseClient';
 
 interface TemplateManagerProps {
     onInsert: (content: string) => void;
@@ -17,8 +19,9 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('Técnica');
     const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
-    const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'create-structured' | 'edit-structured'>('list');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+    const [templateType, setTemplateType] = useState<'simple' | 'structured'>('simple');
 
     // Get unique categories from templates + default categories
     const allCategories = useMemo(() => {
@@ -120,10 +123,16 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                 {viewMode === 'list' ? (
                     <div className="space-y-4">
                         <button
-                            onClick={() => setViewMode('create')}
+                            onClick={() => { setTemplateType('simple'); setViewMode('create'); }}
                             className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-all flex justify-center items-center font-medium"
                         >
-                            <Plus className="w-5 h-5 mr-2" /> Nueva Plantilla
+                            <Plus className="w-5 h-5 mr-2" /> Nueva Plantilla Simple
+                        </button>
+                        <button
+                            onClick={() => { setTemplateType('structured'); setViewMode('create-structured'); }}
+                            className="w-full py-3 border-2 border-dashed border-green-300 dark:border-green-600 rounded-xl text-green-600 dark:text-green-400 hover:border-green-500 hover:text-green-600 dark:hover:border-green-400 transition-all flex justify-center items-center font-medium"
+                        >
+                            <List className="w-5 h-5 mr-2" /> Nueva Plantilla Estructurada
                         </button>
 
                         {filteredTemplates.length === 0 && (
@@ -156,7 +165,103 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                             </div>
                         )}
                     </div>
+                ) : viewMode === 'create-structured' || viewMode === 'edit-structured' ? (
+                    <div>
+                        {!editingTemplate ? (
+                            // Step 1: Create template metadata
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Nombre de la Plantilla</label>
+                                    <input
+                                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none"
+                                        placeholder="ej: TC Abdomen Completo"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Categoría</label>
+                                    <select
+                                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none"
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                    >
+                                        {DEFAULT_CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex space-x-2 pt-2">
+                                    <button
+                                        onClick={handleCancelEdit}
+                                        className="flex-1 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (name) {
+                                                // Create template in DB first
+                                                const { data: { session } } = await supabase.auth.getSession();
+                                                if (!session) return;
+
+                                                const { data, error } = await supabase
+                                                    .from('templates')
+                                                    .insert({
+                                                        user_id: session.user.id,
+                                                        name,
+                                                        category,
+                                                        template_type: 'structured',
+                                                        content: '' // Placeholder
+                                                    })
+                                                    .select()
+                                                    .single();
+
+                                                if (error) {
+                                                    console.error('Error creating template:', error);
+                                                    return;
+                                                }
+
+                                                if (data) {
+                                                    setEditingTemplate({ ...data, fields: [] } as Template);
+                                                }
+                                            }
+                                        }}
+                                        disabled={!name}
+                                        className="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all shadow-lg"
+                                    >
+                                        Siguiente: Añadir Campos
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            // Step 2: Edit fields
+                            <TemplateFieldEditor
+                                templateId={editingTemplate.id}
+                                initialFields={editingTemplate.fields || []}
+                                onSave={(fields) => {
+                                    setEditingTemplate(null);
+                                    setName('');
+                                    setCategory('Técnica');
+                                    setViewMode('list');
+                                    // Reload templates to get the updated one
+                                    window.location.reload();
+                                }}
+                                onCancel={() => {
+                                    // Delete the template if user cancels
+                                    if (editingTemplate) {
+                                        removeTemplate(editingTemplate.id);
+                                    }
+                                    setEditingTemplate(null);
+                                    setName('');
+                                    setCategory('Técnica');
+                                    setViewMode('list');
+                                }}
+                            />
+                        )}
+                    </div>
                 ) : (
+                    // Simple template creation/editing
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Nombre</label>
