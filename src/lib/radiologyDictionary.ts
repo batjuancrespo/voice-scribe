@@ -69,6 +69,8 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "milímetros": "mm",
     "centímetros": "cm",
     "metros": "m",
+
+    // Romanos con texto
     "romano uno": "I",
     "romano dos": "II",
     "romano tres": "III",
@@ -81,6 +83,20 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "romano diez": "X",
     "romano once": "XI",
     "romano doce": "XII",
+
+    // Romanos con números (cuando se dicta "romano 6" en lugar de "romano seis")
+    "romano 1": "I",
+    "romano 2": "II",
+    "romano 3": "III",
+    "romano 4": "IV",
+    "romano 5": "V",
+    "romano 6": "VI",
+    "romano 7": "VII",
+    "romano 8": "VIII",
+    "romano 9": "IX",
+    "romano 10": "X",
+    "romano 11": "XI",
+    "romano 12": "XII",
 
     // === TC (Tomografía Computarizada) ===
     "tomografía computarizada": "TC",
@@ -169,7 +185,6 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "resonancia": "resonancia",
     "ecografía": "ecografía",
     "posteroanterior": "posteroanterior",
-    "PA": "PA",
 
     "axial": "axial",
     "coronal": "coronal",
