@@ -1,4 +1,5 @@
 import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
+import { convertTextNumbersToDigits, processMedicalMeasurements } from './numberConverter';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
     " punto y aparte": ".\n\n",
@@ -32,7 +33,10 @@ function needsCapitalization(text: string): boolean {
 export function processTranscriptSegment(text: string, userReplacements: Record<string, string> = {}, previousText: string = ''): string {
     let processed = text;
 
-    // 0. Apply Radiology Dictionary FIRST (pre-loaded medical terms)
+    // 0. Convert text numbers to digits FIRST (before any other processing)
+    processed = convertTextNumbersToDigits(processed);
+
+    // 1. Apply Radiology Dictionary (pre-loaded medical terms)
     const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
 
     radiologyReplacements.forEach(([original, replacement]) => {
@@ -41,7 +45,7 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
         processed = processed.replace(regex, replacement);
     });
 
-    // 1. User Vocabulary Replacements (override radiology dictionary if needed)
+    // 2. User Vocabulary Replacements (override radiology dictionary if needed)
     const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
 
     sortedReplacements.forEach(([original, replacement]) => {
@@ -50,17 +54,20 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
         processed = processed.replace(regex, replacement);
     });
 
-    // 2. Basic Punctuation Replacement
+    // 3. Process medical measurement patterns
+    processed = processMedicalMeasurements(processed);
+
+    // 4. Basic Punctuation Replacement
     Object.entries(PUNCTUATION_MAP).forEach(([key, value]) => {
         const regex = new RegExp(key, "gi");
         processed = processed.replace(regex, value);
     });
 
-    // 3. Formatting Rules
+    // 5. Formatting Rules
     processed = processed.replace(/([.,:;?!])([^\s\n])/g, '$1 $2');
     processed = processed.replace(/\s+([.,:;?!])/g, '$1');
 
-    // 4. Context-aware Capitalization
+    // 6. Context-aware Capitalization
     // A. Capitalize start if context requires it (based on previous text)
     if (needsCapitalization(previousText)) {
         processed = processed.replace(/^\s*[a-zñáéíóú]/, (match) => match.toUpperCase());
