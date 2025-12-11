@@ -22,6 +22,11 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "vena cava": "vena cava",
     "arteria pulmonar": "arteria pulmonar",
 
+    // Correcciones comunes de reconocimiento de voz
+    "a ortoiliaca": "aortoiliaca",
+    "a hortoiliaca": "aortoiliaca",
+    "ahortoiliaca": "aortoiliaca",
+
     // Hallazgos Comunes
     "normal": "normal",
     "patológico": "patológico",
