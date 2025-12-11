@@ -9,13 +9,13 @@ interface TemplateManagerProps {
     onClose: () => void;
 }
 
-const DEFAULT_CATEGORIES = ['General', 'Informes', 'Firmas', 'Diagnósticos', 'Prescripciones'];
+const DEFAULT_CATEGORIES = ['Técnica', 'TAC', 'RM', 'ECO', 'Otros'];
 
 export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
     const { templates, addTemplate, removeTemplate } = useTemplates();
     const [name, setName] = useState('');
     const [content, setContent] = useState('');
-    const [category, setCategory] = useState('General');
+    const [category, setCategory] = useState('Técnica');
     const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
     const [viewMode, setViewMode] = useState<'list' | 'create'>('list');
 
@@ -50,7 +50,7 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
             addTemplate(name, content, category);
             setName('');
             setContent('');
-            setCategory('General');
+            setCategory('Técnica');
             setViewMode('list');
         }
     };
@@ -76,8 +76,8 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedCategory === cat
-                                        ? 'bg-blue-600 text-white shadow-lg'
-                                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
+                                    ? 'bg-blue-600 text-white shadow-lg'
+                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
                                     }`}
                             >
                                 <FolderOpen className="w-4 h-4 inline mr-1.5" />

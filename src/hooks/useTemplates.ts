@@ -37,7 +37,7 @@ export const useTemplates = () => {
         fetchTemplates();
     }, []);
 
-    const addTemplate = async (name: string, content: string, category: string = 'General') => {
+    const addTemplate = async (name: string, content: string, category: string = 'Técnica') => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
