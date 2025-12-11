@@ -170,7 +170,7 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "ecografía": "ecografía",
     "posteroanterior": "posteroanterior",
     "PA": "PA",
-    "lateral": "lateral",
+
     "axial": "axial",
     "coronal": "coronal",
     "sagital": "sagital",
