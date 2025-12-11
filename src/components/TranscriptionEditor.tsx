@@ -8,7 +8,8 @@ import { processTranscriptSegment } from '@/lib/textProcessor';
 import { VocabularySettings } from '@/components/VocabularySettings';
 import { TemplateManager } from '@/components/TemplateManager';
 import { supabase } from '@/lib/supabaseClient';
-import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut } from 'lucide-react';
+import { useAudioLevel } from '@/hooks/useAudioLevel';
+import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -23,6 +24,7 @@ export function TranscriptionEditor() {
 
     const { replacements } = useVocabulary();
     const { templates } = useTemplates();
+    const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
 
     const [showSettings, setShowSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
@@ -166,6 +168,16 @@ export function TranscriptionEditor() {
             }
         }
     }, [selectionRange, fullText]);
+
+    // Initialize audio level monitoring when listening starts
+    useEffect(() => {
+        if (isListening) {
+            initAudio();
+        } else {
+            cleanupAudio();
+        }
+        return () => cleanupAudio();
+    }, [isListening]);
 
     return (
         <div className="flex flex-col h-full max-w-5xl mx-auto p-6 space-y-6">
@@ -312,6 +324,38 @@ export function TranscriptionEditor() {
                     )}
                 </button>
             </div>
+
+            {/* Audio Level Indicator */}
+            {isListening && (
+                <div className="flex flex-col items-center pb-6 px-4">
+                    <div className="w-full max-w-md space-y-2">
+                        {/* Audio level bar */}
+                        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full transition-all duration-100 ${isMuted ? 'bg-gray-400' :
+                                        isLow ? 'bg-yellow-500' :
+                                            'bg-green-500'
+                                    }`}
+                                style={{ width: `${audioLevel}%` }}
+                            />
+                        </div>
+
+                        {/* Warning messages */}
+                        {isLow && !isMuted && (
+                            <div className="flex items-center justify-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>Audio bajo - acerca el micrófono</span>
+                            </div>
+                        )}
+                        {isMuted && (
+                            <div className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400 text-sm">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>No se detecta audio - verifica el micrófono</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
