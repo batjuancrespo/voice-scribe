@@ -56,6 +56,33 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
         }
     };
 
+    const handleStartEdit = (template: Template) => {
+        setEditingTemplate(template);
+        setName(template.name);
+        setContent(template.content);
+        setCategory(template.category || 'Técnica');
+        setViewMode('edit');
+    };
+
+    const handleEdit = () => {
+        if (editingTemplate && name && content) {
+            updateTemplate(editingTemplate.id, name, content, category);
+            setName('');
+            setContent('');
+            setCategory('Técnica');
+            setEditingTemplate(null);
+            setViewMode('list');
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setName('');
+        setContent('');
+        setCategory('Técnica');
+        setEditingTemplate(null);
+        setViewMode('list');
+    };
+
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
             <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
@@ -115,7 +142,7 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                                     </h3>
                                     <div className="space-y-2">
                                         {temps.map((t) => (
-                                            <TemplateCard key={t.id} template={t} onInsert={onInsert} onDelete={removeTemplate} />
+                                            <TemplateCard key={t.id} template={t} onInsert={onInsert} onDelete={removeTemplate} onEdit={handleStartEdit} />
                                         ))}
                                     </div>
                                 </div>
@@ -124,7 +151,7 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                             // Flat list for specific category
                             <div className="space-y-2">
                                 {filteredTemplates.map((t) => (
-                                    <TemplateCard key={t.id} template={t} onInsert={onInsert} onDelete={removeTemplate} />
+                                    <TemplateCard key={t.id} template={t} onInsert={onInsert} onDelete={removeTemplate} onEdit={handleStartEdit} />
                                 ))}
                             </div>
                         )}
@@ -163,17 +190,17 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
                         </div>
                         <div className="flex space-x-2 pt-2">
                             <button
-                                onClick={() => setViewMode('list')}
+                                onClick={handleCancelEdit}
                                 className="flex-1 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={handleCreate}
+                                onClick={viewMode === 'edit' ? handleEdit : handleCreate}
                                 disabled={!name || !content}
                                 className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all shadow-lg"
                             >
-                                Guardar
+                                {viewMode === 'edit' ? 'Actualizar' : 'Guardar'}
                             </button>
                         </div>
                     </div>
@@ -183,7 +210,7 @@ export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
     );
 }
 
-function TemplateCard({ template, onInsert, onDelete }: { template: Template; onInsert: (content: string) => void; onDelete: (id: string) => void }) {
+function TemplateCard({ template, onInsert, onDelete, onEdit }: { template: Template; onInsert: (content: string) => void; onDelete: (id: string) => void; onEdit: (template: Template) => void }) {
     return (
         <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group shadow-sm hover:shadow-md">
             <div className="flex justify-between items-start mb-2">
@@ -195,13 +222,22 @@ function TemplateCard({ template, onInsert, onDelete }: { template: Template; on
                         </span>
                     )}
                 </div>
-                <button
-                    onClick={() => onDelete(template.id)}
-                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                    title="Eliminar"
-                >
-                    <Trash className="w-4 h-4" />
-                </button>
+                <div className="flex space-x-1">
+                    <button
+                        onClick={() => onEdit(template)}
+                        className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="Editar"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => onDelete(template.id)}
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="Eliminar"
+                    >
+                        <Trash className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">{template.content}</p>
             <button
