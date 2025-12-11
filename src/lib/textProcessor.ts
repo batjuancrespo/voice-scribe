@@ -48,10 +48,23 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     // 2. User Vocabulary Replacements (override radiology dictionary if needed)
     const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
 
+    // DEBUG: Log user replacements
+    if (sortedReplacements.length > 0) {
+        console.log('[Dictionary] User replacements:', sortedReplacements);
+        console.log('[Dictionary] Processing text:', processed);
+    }
+
     sortedReplacements.forEach(([original, replacement]) => {
         const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(escaped, "gi");
+        const beforeReplace = processed;
         processed = processed.replace(regex, replacement);
+
+        if (beforeReplace !== processed) {
+            console.log(`[Dictionary] Applied: "${original}" → "${replacement}"`);
+            console.log(`[Dictionary] Before: "${beforeReplace}"`);
+            console.log(`[Dictionary] After: "${processed}"`);
+        }
     });
 
     // 3. Process medical measurement patterns
