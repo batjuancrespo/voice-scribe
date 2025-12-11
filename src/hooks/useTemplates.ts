@@ -76,9 +76,29 @@ export const useTemplates = () => {
         }
     };
 
+    const updateTemplate = async (id: string, name: string, content: string, category: string = 'Técnica') => {
+        // Optimistic update
+        setTemplates((prev) => prev.map(t =>
+            t.id === id ? { ...t, name, content, category } : t
+        ));
+
+        const { error } = await supabase
+            .from('templates')
+            .update({ name, content, category })
+            .eq('id', id);
+
+        if (error) {
+            console.error("Error updating template:", error);
+            // Revert on error - refetch
+            const { data } = await supabase.from('templates').select('*');
+            if (data) setTemplates(data as Template[]);
+        }
+    };
+
     return {
         templates,
         addTemplate,
-        removeTemplate
+        removeTemplate,
+        updateTemplate
     };
 };

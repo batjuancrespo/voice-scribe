@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
-import { Plus, Trash, FileText, Copy, FolderOpen } from 'lucide-react';
+import { Plus, Trash, FileText, Copy, FolderOpen, Edit2 } from 'lucide-react';
 
 interface TemplateManagerProps {
     onInsert: (content: string) => void;
@@ -12,12 +12,13 @@ interface TemplateManagerProps {
 const DEFAULT_CATEGORIES = ['Técnica', 'TAC', 'RM', 'ECO', 'Otros'];
 
 export function TemplateManager({ onInsert, onClose }: TemplateManagerProps) {
-    const { templates, addTemplate, removeTemplate } = useTemplates();
+    const { templates, addTemplate, removeTemplate, updateTemplate } = useTemplates();
     const [name, setName] = useState('');
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('Técnica');
     const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
-    const [viewMode, setViewMode] = useState<'list' | 'create'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit'>('list');
+    const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
 
     // Get unique categories from templates + default categories
     const allCategories = useMemo(() => {

@@ -78,9 +78,46 @@ export const useVocabulary = () => {
         }
     };
 
+    const updateReplacement = async (oldOriginal: string, newOriginal: string, newReplacement: string) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        // Remove old entry
+        await supabase
+            .from('vocabulary')
+            .delete()
+            .eq('original', oldOriginal.toLowerCase())
+            .eq('user_id', session.user.id);
+
+        // Add new entry
+        const { data, error } = await supabase
+            .from('vocabulary')
+            .insert({
+                user_id: session.user.id,
+                original: newOriginal.toLowerCase(),
+                replacement: newReplacement
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Error updating replacement:", error);
+            return;
+        }
+
+        // Update local state
+        setReplacements((prev) => {
+            const next = { ...prev };
+            delete next[oldOriginal.toLowerCase()];
+            next[newOriginal.toLowerCase()] = newReplacement;
+            return next;
+        });
+    };
+
     return {
         replacements,
         addReplacement,
-        removeReplacement
+        removeReplacement,
+        updateReplacement
     };
 };
