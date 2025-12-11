@@ -1,6 +1,7 @@
+import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
-    " punto y aparte": ".\\n\\n",
+    " punto y aparte": ".\n\n",
     " punto y seguido": ". ",
     " punto": ".",
     " coma": ",",
@@ -14,6 +15,8 @@ export const PUNCTUATION_MAP: Record<string, string> = {
     " signo de exclamación": "!",
     " guion": "-",
     " comillas": '"',
+    " nueva línea": "\n",
+    " salto de línea": "\n",
 };
 
 // Helper to check if text ends in a sentence terminator
@@ -29,29 +32,35 @@ function needsCapitalization(text: string): boolean {
 export function processTranscriptSegment(text: string, userReplacements: Record<string, string> = {}, previousText: string = ''): string {
     let processed = text;
 
-    // 0. User Vocabulary Replacements (Pre-punctuation)
-    // Sort by length (descending) to match longer phrases first
-    const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
+    // 0. Apply Radiology Dictionary FIRST (pre-loaded medical terms)
+    const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
 
-    sortedReplacements.forEach(([original, replacement]) => {
-        // Escape special regex characters in the original text
+    radiologyReplacements.forEach(([original, replacement]) => {
         const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Use case-insensitive replacement
         const regex = new RegExp(escaped, "gi");
         processed = processed.replace(regex, replacement);
     });
 
-    // 1. Basic Punctuation Replacement
+    // 1. User Vocabulary Replacements (override radiology dictionary if needed)
+    const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
+
+    sortedReplacements.forEach(([original, replacement]) => {
+        const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, "gi");
+        processed = processed.replace(regex, replacement);
+    });
+
+    // 2. Basic Punctuation Replacement
     Object.entries(PUNCTUATION_MAP).forEach(([key, value]) => {
         const regex = new RegExp(key, "gi");
         processed = processed.replace(regex, value);
     });
 
-    // 2. Formatting Rules
+    // 3. Formatting Rules
     processed = processed.replace(/([.,:;?!])([^\s\n])/g, '$1 $2');
     processed = processed.replace(/\s+([.,:;?!])/g, '$1');
 
-    // 3. Context-aware Capitalization
+    // 4. Context-aware Capitalization
     // A. Capitalize start if context requires it (based on previous text)
     if (needsCapitalization(previousText)) {
         processed = processed.replace(/^\s*[a-zñáéíóú]/, (match) => match.toUpperCase());
@@ -61,10 +70,8 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
         }
     }
 
-    // B. Capitalize sentences *within* the new segment (e.g. "punto y aparte la casa" -> ".\n\n La casa")
-    // Match: Punctuation/Newline + whitespace + lowercase letter
+    // B. Capitalize sentences *within* the new segment
     processed = processed.replace(/([.!?]\s+|\n\s*)([a-zñáéíóú])/g, (fullMatch, separator, letter) => {
-        // If separator contains newline, remove *trailing* spaces (indentation) so letter starts at margin
         if (separator.includes('\n')) {
             separator = separator.replace(/[ \t]+$/, '');
         }
