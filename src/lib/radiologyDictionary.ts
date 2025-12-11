@@ -223,7 +223,6 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
 
     // Órganos Abdominales
     "hígado": "hígado",
-    "vesícula": "vesícula biliar",
     "vesícula biliar": "vesícula biliar",
     "vía biliar": "vía biliar",
     "conducto biliar": "conducto biliar",
