@@ -72,7 +72,16 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
 
     // 4. Basic Punctuation Replacement
     Object.entries(PUNCTUATION_MAP).forEach(([key, value]) => {
-        const regex = new RegExp(key, "gi");
+        let pattern = key;
+        // If key starts with space, allow matching start of line too
+        if (pattern.startsWith(' ')) {
+            const word = pattern.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special chars
+            pattern = `(?:^|\\s)${word}`;
+        } else {
+            pattern = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        const regex = new RegExp(pattern, "gi");
         processed = processed.replace(regex, value);
     });
 

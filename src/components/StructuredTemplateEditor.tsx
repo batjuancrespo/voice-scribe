@@ -84,20 +84,21 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
             stopListening();
             setFieldStopped(fieldId, fields.find(f => f.id === fieldId)?.currentText || '');
         } else {
-            // If listening on another field, stop that one first
+            // If listening on another field, just switch focus without stopping mic
             if (isListening) {
-                stopListening();
-                // Find prev active
+                // Stop visual recording state on old field
                 if (activeFieldId) {
                     setFieldStopped(activeFieldId, fields.find(f => f.id === activeFieldId)?.currentText || '');
                 }
-            }
 
-            // Start recording on this field
-            // Clear default text if we are starting fresh? Maybe best handled in the useEffect above to apply only when speech is detected.
-            // But visuals should update immediately.
-            setFieldRecording(fieldId);
-            startListening();
+                // Start visual recording state on new field
+                setFieldRecording(fieldId);
+                // We do NOT call stopListening() / startListening() so the stream continues uninterrupted
+            } else {
+                // Not listening yet, start fresh
+                setFieldRecording(fieldId);
+                startListening();
+            }
         }
     };
 
