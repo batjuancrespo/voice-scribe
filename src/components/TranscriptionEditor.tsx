@@ -235,152 +235,156 @@ export function TranscriptionEditor() {
             )}
 
             <main className="flex-1 relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col min-h-[500px]">
-                {/* Toolbar */}
-                <div className="flex items-center justify-between px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex space-x-2">
-                        <button
-                            onClick={() => { setFullText(''); setSelectionRange({ start: 0, end: 0 }); }}
-                            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-red-200 dark:hover:border-red-800"
-                            title="Borrar todo"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-sm font-medium">Borrar</span>
-                        </button>
-                        <button
-                            onClick={handleCopyToClipboard}
-                            disabled={!fullText}
-                            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Copiar al portapapeles"
-                        >
-                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                            <span className="text-sm font-medium">{copied ? 'Copiado' : 'Copiar'}</span>
-                        </button>
-                    </div>
-                    <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
-                        {isListening ? '● GRABANDO' : 'LISTO'}
-                    </div>
-                </div>
-
-                {/* Editor Area */}
-                <div className="relative flex-1 p-6">
-                    <textarea
-                        ref={textareaRef}
-                        className="w-full h-full resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
-                        placeholder="Pulsa el micrófono para empezar a dictar..."
-                        value={fullText}
-                        onChange={(e) => {
-                            setFullText(e.target.value);
-                            handleSelect();
-                        }}
-                        onSelect={handleSelect}
-                        onClick={handleSelect}
-                        onKeyUp={handleSelect}
+                {activeStructuredTemplate ? (
+                    <StructuredTemplateEditor
+                        templateName={activeStructuredTemplate.name}
+                        fields={activeStructuredTemplate.fields || []}
+                        onComplete={handleInsertTemplate}
+                        onCancel={() => setActiveStructuredTemplate(null)}
                     />
-
-                    {showSettings && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
+                ) : (
+                    <>
+                        {/* Toolbar */}
+                        <div className="flex items-center justify-between px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex space-x-2">
                                 <button
-                                    onClick={() => setShowSettings(false)}
-                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                    onClick={() => { setFullText(''); setSelectionRange({ start: 0, end: 0 }); }}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                                    title="Borrar todo"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Borrar</span>
                                 </button>
-                                <VocabularySettings
-                                    selectedText={getSelectedText()}
-                                    onCorrect={handleApplyCorrection}
-                                />
+                                <button
+                                    onClick={handleCopyToClipboard}
+                                    disabled={!fullText}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Copiar al portapapeles"
+                                >
+                                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                    <span className="text-sm font-medium">{copied ? 'Copiado' : 'Copiar'}</span>
+                                </button>
+                            </div>
+                            <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                                {isListening ? '● GRABANDO' : 'LISTO'}
                             </div>
                         </div>
-                    )}
 
-                    {showTemplates && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
-                                <TemplateManager
-                                    onClose={() => setShowTemplates(false)}
-                                    onInsert={handleInsertTemplate}
-                                    onInsertStructured={handleOpenStructuredTemplate}
-                                />
-                            </div>
-                        </div>
-                    )}
+                        {/* Editor Area */}
+                        <div className="relative flex-1 p-6">
+                            <textarea
+                                ref={textareaRef}
+                                className="w-full h-full resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
+                                placeholder="Pulsa el micrófono para empezar a dictar..."
+                                value={fullText}
+                                onChange={(e) => {
+                                    setFullText(e.target.value);
+                                    handleSelect();
+                                }}
+                                onSelect={handleSelect}
+                                onClick={handleSelect}
+                                onKeyUp={handleSelect}
+                            />
 
-                    {activeStructuredTemplate && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-                            <div className="w-full max-w-2xl h-full relative animate-in fade-in zoom-in duration-200">
-                                <StructuredTemplateEditor
-                                    templateName={activeStructuredTemplate.name}
-                                    fields={activeStructuredTemplate.fields || []}
-                                    onComplete={handleInsertTemplate}
-                                    onCancel={() => setActiveStructuredTemplate(null)}
-                                />
-                            </div>
-                        </div>
-                    )}
+                            {showSettings && (
+                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
+                                        <button
+                                            onClick={() => setShowSettings(false)}
+                                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
+                                        <VocabularySettings
+                                            selectedText={getSelectedText()}
+                                            onCorrect={handleApplyCorrection}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Interim Overlay */}
-                    {isListening && interimResult && (
-                        <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic pointer-events-none border-l-4 border-blue-500 shadow-lg">
-                            {interimResult}
+                            {showTemplates && (
+                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+                                        <TemplateManager
+                                            onClose={() => setShowTemplates(false)}
+                                            onInsert={handleInsertTemplate}
+                                            onInsertStructured={handleOpenStructuredTemplate}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+
+
+                            {/* Interim Overlay */}
+                            {isListening && interimResult && (
+                                <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic pointer-events-none border-l-4 border-blue-500 shadow-lg">
+                                    {interimResult}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </>
+                )}
             </main>
 
-            <div className="flex justify-center pb-8">
-                <button
-                    onClick={isListening ? stopListening : startListening}
-                    className={twMerge(
-                        "group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4",
-                        isListening
-                            ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/50 focus:ring-red-200"
-                            : "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/50 focus:ring-blue-200"
-                    )}
-                >
-                    {isListening ? (
-                        <Square className="w-8 h-8 text-white fill-current" />
-                    ) : (
-                        <Mic className="w-10 h-10 text-white" />
-                    )}
+            {!activeStructuredTemplate && (
+                <>
+                    <div className="flex justify-center pb-8">
+                        <button
+                            onClick={isListening ? stopListening : startListening}
+                            className={twMerge(
+                                "group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4",
+                                isListening
+                                    ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/50 focus:ring-red-200"
+                                    : "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/50 focus:ring-blue-200"
+                            )}
+                        >
+                            {isListening ? (
+                                <Square className="w-8 h-8 text-white fill-current" />
+                            ) : (
+                                <Mic className="w-10 h-10 text-white" />
+                            )}
 
-                    {/* Pulse effect ring */}
-                    {isListening && (
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-                    )}
-                </button>
-            </div>
-
-            {/* Audio Level Indicator */}
-            {isListening && (
-                <div className="flex flex-col items-center pb-6 px-4">
-                    <div className="w-full max-w-md space-y-2">
-                        {/* Audio level bar */}
-                        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div
-                                className={`h-full transition-all duration-100 ${isMuted ? 'bg-gray-400' :
-                                    isLow ? 'bg-yellow-500' :
-                                        'bg-green-500'
-                                    }`}
-                                style={{ width: `${audioLevel}%` }}
-                            />
-                        </div>
-
-                        {/* Warning messages */}
-                        {isLow && !isMuted && (
-                            <div className="flex items-center justify-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm">
-                                <AlertTriangle className="w-4 h-4" />
-                                <span>Audio bajo - acerca el micrófono</span>
-                            </div>
-                        )}
-                        {isMuted && (
-                            <div className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400 text-sm">
-                                <AlertTriangle className="w-4 h-4" />
-                                <span>No se detecta audio - verifica el micrófono</span>
-                            </div>
-                        )}
+                            {/* Pulse effect ring */}
+                            {isListening && (
+                                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                            )}
+                        </button>
                     </div>
-                </div>
+
+                    {/* Audio Level Indicator */}
+                    {isListening && (
+                        <div className="flex flex-col items-center pb-6 px-4">
+                            <div className="w-full max-w-md space-y-2">
+                                {/* Audio level bar */}
+                                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-100 ${isMuted ? 'bg-gray-400' :
+                                            isLow ? 'bg-yellow-500' :
+                                                'bg-green-500'
+                                            }`}
+                                        style={{ width: `${audioLevel}%` }}
+                                    />
+                                </div>
+
+                                {/* Warning messages */}
+                                {isLow && !isMuted && (
+                                    <div className="flex items-center justify-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        <span>Audio bajo - acerca el micrófono</span>
+                                    </div>
+                                )}
+                                {isMuted && (
+                                    <div className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400 text-sm">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        <span>No se detecta audio - verifica el micrófono</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
