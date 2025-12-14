@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranscription } from '@/hooks/useTranscription';
 import { useStructuredTemplate } from '@/hooks/useStructuredTemplate';
+import { useVocabulary } from '@/hooks/useVocabulary';
+import { processTranscriptSegment } from '@/lib/textProcessor';
 import { TemplateField as DbTemplateField } from '@/hooks/useTemplates';
 import { Mic, Check, AlertTriangle, Play, Square, X, RotateCcw } from 'lucide-react';
 
@@ -43,6 +45,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
         lastEvent
     } = useTranscription();
 
+    const { replacements } = useVocabulary();
     const lastProcessedTimestamp = useRef<number>(0);
 
     // Effect to handle transcription results
@@ -57,10 +60,16 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
 
                 // If the text is the default text, replace it completely on first dictation
                 if (field.currentText === field.defaultText) {
-                    newText = lastEvent.text; // Start fresh
+                    // Start fresh: context is empty to trigger capitalization
+                    const processedText = processTranscriptSegment(lastEvent.text, replacements, '');
+                    newText = processedText;
                 } else {
                     // If already edited/recording, append
-                    newText = (field.currentText + ' ' + lastEvent.text).trim();
+                    // Use currentText as context for capitalization logic
+                    const processedText = processTranscriptSegment(lastEvent.text, replacements, field.currentText);
+                    const needsSpace = field.currentText.length > 0 && !/\s$/.test(field.currentText);
+
+                    newText = field.currentText + (needsSpace ? ' ' : '') + processedText;
                 }
 
                 updateField(activeFieldId, newText);

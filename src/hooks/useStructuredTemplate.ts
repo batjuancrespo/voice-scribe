@@ -111,7 +111,7 @@ export const useStructuredTemplate = (
             sectionFields
                 .sort((a, b) => a.displayOrder - b.displayOrder)
                 .forEach(field => {
-                    report += `${field.fieldName}: ${field.currentText}\n`;
+                    report += `${field.currentText}\n`;
                 });
 
             report += '\n';
