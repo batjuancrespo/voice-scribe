@@ -116,7 +116,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
     }, [fields]);
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl overflow-hidden max-h-[85vh]">
+        <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
             {/* Header */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
                 <div>

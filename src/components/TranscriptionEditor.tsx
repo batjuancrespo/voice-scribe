@@ -117,7 +117,7 @@ export function TranscriptionEditor() {
 
     // Main Transcription Logic
     useEffect(() => {
-        if (lastEvent) {
+        if (lastEvent && !activeStructuredTemplate) {
             const prevText = fullTextRef.current;
             const range = selectionRangeRef.current || { start: prevText.length, end: prevText.length };
 
