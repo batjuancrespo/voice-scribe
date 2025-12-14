@@ -7,7 +7,9 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { VocabularySettings } from '@/components/VocabularySettings';
 import { TemplateManager } from '@/components/TemplateManager';
+import { StructuredTemplateEditor } from '@/components/StructuredTemplateEditor';
 import { supabase } from '@/lib/supabaseClient';
+import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
@@ -28,6 +30,7 @@ export function TranscriptionEditor() {
 
     const [showSettings, setShowSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [copied, setCopied] = useState(false);
 
@@ -100,10 +103,16 @@ export function TranscriptionEditor() {
         setSelectionRange({ start: newPos, end: newPos });
 
         setShowTemplates(false);
+        setActiveStructuredTemplate(null);
         setTimeout(() => {
             textareaRef.current?.focus();
             textareaRef.current?.setSelectionRange(newPos, newPos);
         }, 0);
+    }, []);
+
+    const handleOpenStructuredTemplate = useCallback((template: Template) => {
+        setShowTemplates(false);
+        setActiveStructuredTemplate(template);
     }, []);
 
     // Main Transcription Logic
@@ -287,8 +296,25 @@ export function TranscriptionEditor() {
 
                     {showTemplates && (
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
-                                <TemplateManager onClose={() => setShowTemplates(false)} onInsert={handleInsertTemplate} />
+                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+                                <TemplateManager
+                                    onClose={() => setShowTemplates(false)}
+                                    onInsert={handleInsertTemplate}
+                                    onInsertStructured={handleOpenStructuredTemplate}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeStructuredTemplate && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                            <div className="w-full max-w-2xl h-full relative animate-in fade-in zoom-in duration-200">
+                                <StructuredTemplateEditor
+                                    templateName={activeStructuredTemplate.name}
+                                    fields={activeStructuredTemplate.fields || []}
+                                    onComplete={handleInsertTemplate}
+                                    onCancel={() => setActiveStructuredTemplate(null)}
+                                />
                             </div>
                         </div>
                     )}
@@ -333,8 +359,8 @@ export function TranscriptionEditor() {
                         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
                                 className={`h-full transition-all duration-100 ${isMuted ? 'bg-gray-400' :
-                                        isLow ? 'bg-yellow-500' :
-                                            'bg-green-500'
+                                    isLow ? 'bg-yellow-500' :
+                                        'bg-green-500'
                                     }`}
                                 style={{ width: `${audioLevel}%` }}
                             />
