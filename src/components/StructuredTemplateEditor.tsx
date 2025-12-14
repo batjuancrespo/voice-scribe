@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranscription } from '@/hooks/useTranscription';
 import { useStructuredTemplate } from '@/hooks/useStructuredTemplate';
 import { TemplateField as DbTemplateField } from '@/hooks/useTemplates';
@@ -43,14 +43,15 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
         lastEvent
     } = useTranscription();
 
+    const lastProcessedTimestamp = useRef<number>(0);
+
     // Effect to handle transcription results
     useEffect(() => {
-        if (activeFieldId && lastEvent) {
+        if (activeFieldId && lastEvent && lastEvent.timestamp > lastProcessedTimestamp.current) {
+            console.log("LOG: Procesando evento", lastEvent.text);
             const field = fields.find(f => f.id === activeFieldId);
             if (field) {
                 // Determine if we should append or start fresh
-                // Logic: If field was "freshly" opened for recording, maybe we should've cleared it?
-                // But for now, let's just append if it's already edited, or replace if it's default.
 
                 let newText = field.currentText;
 
@@ -63,6 +64,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                 }
 
                 updateField(activeFieldId, newText);
+                lastProcessedTimestamp.current = lastEvent.timestamp;
             }
         }
     }, [lastEvent, activeFieldId, fields, updateField]);
