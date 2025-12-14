@@ -111,8 +111,13 @@ export const useStructuredTemplate = (
             sectionFields
                 .sort((a, b) => a.displayOrder - b.displayOrder)
                 .forEach(field => {
-                    // Restore fieldName but with space instead of colon
-                    report += `${field.fieldName} ${field.currentText}\n`;
+                    // Logic: If edited, omit field name (user replaces everything).
+                    // If normal, keep field name context.
+                    if (field.isEdited) {
+                        report += `${field.currentText}\n`;
+                    } else {
+                        report += `${field.fieldName} ${field.currentText}\n`;
+                    }
                 });
 
             report += '\n';
