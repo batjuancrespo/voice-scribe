@@ -106,12 +106,13 @@ export const useStructuredTemplate = (
         let report = '';
 
         Object.entries(sections).forEach(([sectionName, sectionFields]) => {
-            report += `${sectionName}:\n`;
+            // report += `${sectionName}:\n`; // Remove section header as requested
 
             sectionFields
                 .sort((a, b) => a.displayOrder - b.displayOrder)
                 .forEach(field => {
-                    report += `${field.currentText}\n`;
+                    // Restore fieldName but with space instead of colon
+                    report += `${field.fieldName} ${field.currentText}\n`;
                 });
 
             report += '\n';
