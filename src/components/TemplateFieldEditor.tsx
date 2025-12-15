@@ -15,6 +15,7 @@ interface TemplateFieldEditorProps {
 interface EditableField extends Omit<TemplateField, 'id'> {
     tempId: string; // For new fields that don't have DB id yet
     id?: string; // Optional for existing fields
+    variants_input: string; // Buffer for editing variants string
 }
 
 export function TemplateFieldEditor({ templateId, initialFields, onSave, onCancel }: TemplateFieldEditorProps) {
@@ -22,7 +23,8 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
         initialFields.map((f, index) => ({
             ...f,
             tempId: f.id || `temp-${index}`,
-            variants: f.variants || []
+            variants: f.variants || [],
+            variants_input: (f.variants || []).join('; ')
         }))
     );
     const [saving, setSaving] = useState(false);
@@ -36,7 +38,8 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
             section: 'HALLAZGOS',
             display_order: fields.length,
             is_required: false,
-            variants: []
+            variants: [],
+            variants_input: ''
         };
         setFields([...fields, newField]);
     };
@@ -81,7 +84,10 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                 .eq('template_id', templateId);
 
             // Insert all current fields
-            const fieldsToInsert = fields.map(({ tempId, id, ...field }) => field);
+            const fieldsToInsert = fields.map(({ tempId, id, variants_input, ...field }) => ({
+                ...field,
+                variants: variants_input.split(';').map(v => v.trim()).filter(v => v.length > 0)
+            }));
 
             const { data, error } = await supabase
                 .from('template_fields')
@@ -198,9 +204,9 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                                             Variantes rápidas (separadas por punto y coma ';')
                                         </label>
                                         <textarea
-                                            value={field.variants?.join('; ') || ''}
+                                            value={field.variants_input}
                                             onChange={(e) => updateField(field.tempId, {
-                                                variants: e.target.value.split(';').map(v => v.trim()).filter(v => v.length > 0)
+                                                variants_input: e.target.value
                                             })}
                                             placeholder="ej: es de tamaño aumentado por esteatosis; presenta quistes simples milimétricos"
                                             rows={3}
