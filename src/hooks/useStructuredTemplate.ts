@@ -13,6 +13,7 @@ export interface TemplateField {
     isRequired: boolean;
     isEdited: boolean;
     isRecording: boolean;
+    variants?: string[];
 }
 
 interface UseStructuredTemplateReturn {

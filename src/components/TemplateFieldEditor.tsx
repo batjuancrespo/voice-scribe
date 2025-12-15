@@ -21,7 +21,8 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
     const [fields, setFields] = useState<EditableField[]>(() =>
         initialFields.map((f, index) => ({
             ...f,
-            tempId: f.id || `temp-${index}`
+            tempId: f.id || `temp-${index}`,
+            variants: f.variants || []
         }))
     );
     const [saving, setSaving] = useState(false);
@@ -34,7 +35,8 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
             default_text: '',
             section: 'HALLAZGOS',
             display_order: fields.length,
-            is_required: false
+            is_required: false,
+            variants: []
         };
         setFields([...fields, newField]);
     };
@@ -189,6 +191,22 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                                             rows={2}
                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                                         />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Variantes rápidas (separadas por punto y coma ';')
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={field.variants?.join('; ') || ''}
+                                            onChange={(e) => updateField(field.tempId, {
+                                                variants: e.target.value.split(';').map(v => v.trim()).filter(v => v.length > 0)
+                                            })}
+                                            placeholder="ej: esteatosis; quiste simple; hemangioma"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Opciones que aparecerán al hacer clic derecho</p>
                                     </div>
 
                                     <div className="flex items-center space-x-2">

@@ -11,6 +11,7 @@ export interface TemplateField {
     section: string;
     display_order: number;
     is_required: boolean;
+    variants?: string[];
 }
 
 export interface Template {

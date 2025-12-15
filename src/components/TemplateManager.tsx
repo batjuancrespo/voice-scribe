@@ -23,6 +23,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'create-structured' | 'edit-structured'>('list');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [templateType, setTemplateType] = useState<'simple' | 'structured'>('simple');
+    const [filterType, setFilterType] = useState<'all' | 'structured'>('all');
 
     // Get unique categories from templates + default categories
     const allCategories = useMemo(() => {
@@ -33,11 +34,18 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
         return Array.from(cats);
     }, [templates]);
 
-    // Filter templates by selected category
+    // Filter templates by selected category and type
     const filteredTemplates = useMemo(() => {
-        if (selectedCategory === 'Todas') return templates;
-        return templates.filter(t => t.category === selectedCategory);
-    }, [templates, selectedCategory]);
+        let result = templates;
+
+        // Filter by type if requested
+        if (filterType === 'structured') {
+            result = result.filter(t => t.template_type === 'structured');
+        }
+
+        if (selectedCategory === 'Todas') return result;
+        return result.filter(t => t.category === selectedCategory);
+    }, [templates, selectedCategory, filterType]);
 
     // Group templates by category
     const templatesByCategory = useMemo(() => {
@@ -99,6 +107,28 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                     <FileText className="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" />
                     Plantillas
                 </h2>
+
+                {/* Filter Toggle */}
+                <div className="flex space-x-1 bg-white/50 dark:bg-black/20 p-1 rounded-lg mx-4">
+                    <button
+                        onClick={() => setFilterType('all')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${filterType === 'all'
+                            ? 'bg-white dark:bg-gray-700 shadow text-gray-800 dark:text-gray-200'
+                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                            }`}
+                    >
+                        Todas
+                    </button>
+                    <button
+                        onClick={() => setFilterType('structured')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${filterType === 'structured'
+                            ? 'bg-white dark:bg-gray-700 shadow text-green-600 dark:text-green-400'
+                            : 'text-gray-500 hover:text-green-600 dark:hover:text-green-400'
+                            }`}
+                    >
+                        Inteligentes
+                    </button>
+                </div>
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 p-2 hover:bg-white/50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                     <span className="sr-only">Close</span>
                     ✕

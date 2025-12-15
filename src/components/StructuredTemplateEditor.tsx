@@ -23,7 +23,8 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
         defaultText: f.default_text,
         section: f.section,
         displayOrder: f.display_order,
-        isRequired: f.is_required
+        isRequired: f.is_required,
+        variants: f.variants || []
     }));
 
     const {
@@ -36,6 +37,8 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
         generateReport,
         stats
     } = useStructuredTemplate(mappedFields);
+
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; fieldId: string } | null>(null);
 
     const {
         isListening,
@@ -77,6 +80,26 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
             }
         }
     }, [lastEvent, activeFieldId, fields, updateField]);
+
+    // Close context menu on click elsewhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        document.addEventListener('click', handleClick);
+        return () => document.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleContextMenu = (e: React.MouseEvent, fieldId: string) => {
+        e.preventDefault();
+        // Only show if field has variants or generic options
+        setContextMenu({ x: e.clientX, y: e.clientY, fieldId });
+    };
+
+    const applyVariant = (text: string) => {
+        if (contextMenu) {
+            updateField(contextMenu.fieldId, text);
+            setContextMenu(null);
+        }
+    };
 
     const handleFieldClick = (fieldId: string) => {
         // If already listening on this field, stop
@@ -163,6 +186,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                         <div
                                             key={field.id}
                                             onClick={() => handleFieldClick(field.id)}
+                                            onContextMenu={(e) => handleContextMenu(e, field.id)}
                                             className={`
                                                 relative p-4 rounded-xl border-2 transition-all cursor-pointer group
                                                 ${isActive
@@ -231,6 +255,31 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                     Finalizar Informe
                 </button>
             </div>
+            {/* Context Menu */}
+            {contextMenu && (
+                <div
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    className="fixed z-50 bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 rounded-lg py-1 min-w-[200px]"
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                >
+                    <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 mb-1">
+                        Variantes Rápidas
+                    </div>
+                    {fields.find(f => f.id === contextMenu.fieldId)?.variants?.length ? (
+                        fields.find(f => f.id === contextMenu.fieldId)?.variants?.map((v, i) => (
+                            <button
+                                key={i}
+                                onClick={() => applyVariant(v)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
+                            >
+                                {v}
+                            </button>
+                        ))
+                    ) : (
+                        <div className="px-4 py-2 text-sm text-gray-500 italic">No hay variantes definidas</div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
