@@ -15,7 +15,7 @@ interface TemplateFieldEditorProps {
 interface EditableField extends Omit<TemplateField, 'id'> {
     tempId: string; // For new fields that don't have DB id yet
     id?: string; // Optional for existing fields
-    variants_input: string; // Buffer for editing variants string
+    variants_input?: string; // Buffer for editing variants string
 }
 
 export function TemplateFieldEditor({ templateId, initialFields, onSave, onCancel }: TemplateFieldEditorProps) {
@@ -84,10 +84,14 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                 .eq('template_id', templateId);
 
             // Insert all current fields
-            const fieldsToInsert = fields.map(({ tempId, id, variants_input, ...field }) => ({
-                ...field,
-                variants: variants_input.split(';').map(v => v.trim()).filter(v => v.length > 0)
-            }));
+            const fieldsToInsert = fields.map(({ tempId, id, variants_input, ...field }) => {
+                // Handle potential undefined variants_input (legacy state/HMR)
+                const inputSrc = variants_input !== undefined ? variants_input : (field.variants || []).join('; ');
+                return {
+                    ...field,
+                    variants: inputSrc.split(';').map(v => v.trim()).filter(v => v.length > 0)
+                };
+            });
 
             const { data, error } = await supabase
                 .from('template_fields')
@@ -204,7 +208,7 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                                             Variantes rápidas (separadas por punto y coma ';')
                                         </label>
                                         <textarea
-                                            value={field.variants_input}
+                                            value={field.variants_input ?? (field.variants || []).join('; ')}
                                             onChange={(e) => updateField(field.tempId, {
                                                 variants_input: e.target.value
                                             })}
