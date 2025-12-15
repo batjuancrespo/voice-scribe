@@ -197,13 +197,13 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Variantes rápidas (separadas por punto y coma ';')
                                         </label>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             value={field.variants?.join('; ') || ''}
                                             onChange={(e) => updateField(field.tempId, {
                                                 variants: e.target.value.split(';').map(v => v.trim()).filter(v => v.length > 0)
                                             })}
-                                            placeholder="ej: esteatosis; quiste simple; hemangioma"
+                                            placeholder="ej: es de tamaño aumentado por esteatosis; presenta quistes simples milimétricos"
+                                            rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Opciones que aparecerán al hacer clic derecho</p>
