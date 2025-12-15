@@ -11,7 +11,7 @@ import { StructuredTemplateEditor } from '@/components/StructuredTemplateEditor'
 import { supabase } from '@/lib/supabaseClient';
 import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
-import { Mic, Square, Trash2, Settings, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle } from 'lucide-react';
+import { Mic, Square, Trash2, Book, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -216,7 +216,7 @@ export function TranscriptionEditor() {
                         className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
                         title="Diccionario"
                     >
-                        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <Book className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
                     <button
                         onClick={handleLogout}

@@ -111,12 +111,18 @@ export const useStructuredTemplate = (
             sectionFields
                 .sort((a, b) => a.displayOrder - b.displayOrder)
                 .forEach(field => {
+                    // Normalize text and ensure period at end
+                    let text = field.currentText.trim();
+                    if (text && !/[.!?]$/.test(text)) {
+                        text += '.';
+                    }
+
                     // Logic: If edited, omit field name (user replaces everything).
                     // If normal, keep field name context.
                     if (field.isEdited) {
-                        report += `${field.currentText}\n`;
+                        report += `${text}\n`;
                     } else {
-                        report += `${field.fieldName} ${field.currentText}\n`;
+                        report += `${field.fieldName} ${text}\n`;
                     }
                 });
 
