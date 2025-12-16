@@ -11,7 +11,8 @@ import { StructuredTemplateEditor } from '@/components/StructuredTemplateEditor'
 import { supabase } from '@/lib/supabaseClient';
 import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
-import { Mic, Square, Trash2, Book, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle } from 'lucide-react';
+import { AiSettingsModal } from './AiSettingsModal';
+import { Mic, Square, Trash2, Book, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle, Sparkles, Wand2 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -29,7 +30,9 @@ export function TranscriptionEditor() {
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
 
     const [showSettings, setShowSettings] = useState(false);
+    const [showAiSettings, setShowAiSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [copied, setCopied] = useState(false);
@@ -104,6 +107,44 @@ export function TranscriptionEditor() {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         window.location.reload();
+    };
+
+    const handleAiCorrection = async () => {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            setShowAiSettings(true);
+            return;
+        }
+
+        if (!fullText.trim()) return;
+
+        setIsCorrecting(true);
+        try {
+            const response = await fetch('/api/ai/correct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: fullText,
+                    apiKey,
+                    userDictionary: replacements // Pass user vocabulary for phonetic matching
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.correctedText) {
+                setFullText(data.correctedText);
+                setSelectionRange({ start: data.correctedText.length, end: data.correctedText.length });
+            } else {
+                console.error('AI Error:', data.error);
+                alert('Error al corregir: ' + (data.error || 'Error desconocido'));
+            }
+        } catch (error) {
+            console.error('AI Request Failed:', error);
+            alert('Error de conexión con la IA');
+        } finally {
+            setIsCorrecting(false);
+        }
     };
 
     const handleInsertTemplate = useCallback((content: string) => {
@@ -279,8 +320,22 @@ export function TranscriptionEditor() {
                                     <span className="text-sm font-medium">{copied ? 'Copiado' : 'Copiar'}</span>
                                 </button>
                             </div>
-                            <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
-                                {isListening ? '● GRABANDO' : 'LISTO'}
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={handleAiCorrection}
+                                    disabled={!fullText || isCorrecting}
+                                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 border ${isCorrecting
+                                            ? 'bg-purple-100 text-purple-600 border-purple-200 animate-pulse'
+                                            : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-sm hover:shadow'
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    title="Corregir con IA"
+                                >
+                                    {isCorrecting ? <Sparkles className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                                    <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
+                                </button>
+                                <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                                    {isListening ? '● GRABANDO' : 'LISTO'}
+                                </div>
                             </div>
                         </div>
 
@@ -328,6 +383,11 @@ export function TranscriptionEditor() {
                                     </div>
                                 </div>
                             )}
+
+                            <AiSettingsModal
+                                isOpen={showAiSettings}
+                                onClose={() => setShowAiSettings(false)}
+                            />
 
 
 
