@@ -201,6 +201,9 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                                             rows={2}
                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
                                         />
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            Tip: Usa <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">(opción 1/opción 2)</code> para crear selector interactivo.
+                                        </p>
                                     </div>
 
                                     <div>
