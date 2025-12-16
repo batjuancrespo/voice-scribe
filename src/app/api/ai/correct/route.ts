@@ -4,14 +4,19 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { text, apiKey, userDictionary, model = 'gemini-1.5-flash' } = body;
+        let { text, apiKey, userDictionary, model = 'gemini-1.5-flash' } = body;
+
+        // Fallback to server-side API Key if not provided by client
+        if (!apiKey) {
+            apiKey = process.env.GEMINI_API_KEY;
+        }
 
         if (!text) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
         if (!apiKey) {
-            return NextResponse.json({ error: 'API Key is required' }, { status: 401 });
+            return NextResponse.json({ error: 'API Key is required (Configurar en ajustes o servidor)' }, { status: 401 });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);

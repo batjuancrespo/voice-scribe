@@ -103,7 +103,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                             <input
                                 type={isVisible ? "text" : "password"}
                                 className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-gray-50 dark:bg-gray-800 dark:text-white"
-                                placeholder="Pega tu clave aquí (AIza...)"
+                                placeholder="Opcional si configurada en Vercel/Servidor"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                             />
@@ -116,7 +116,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                             </button>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                            ¿No tienes clave? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">Consíguela gratis aquí</a>.
+                            Si has configurado <code>GEMINI_API_KEY</code> en Vercel, puedes dejar esto vacío.
                         </p>
                     </div>
 
@@ -145,15 +145,15 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                             ))}
                         </select>
                         <p className="text-xs text-gray-500 mt-2">
-                            Si no ves modelos, asegúrate de que tu API Key sea válida.
+                            Si no ves modelos, asegúrate de que tu API Key sea válida (aquí o en servidor).
                         </p>
                     </div>
 
                     <div className="pt-2">
                         <button
                             onClick={handleSave}
-                            disabled={!apiKey}
-                            className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all shadow-lg flex justify-center items-center"
+                            // Button is always enabled now to allow saving model preference even without local key
+                            className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-all shadow-lg flex justify-center items-center"
                         >
                             <Save className="w-4 h-4 mr-2" />
                             Guardar Configuración

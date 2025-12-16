@@ -112,11 +112,13 @@ export function TranscriptionEditor() {
     };
 
     const handleAiCorrection = async () => {
-        const apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) {
-            setShowAiSettings(true);
-            return;
-        }
+        // const apiKey = localStorage.getItem('gemini_api_key');
+        // if (!apiKey) {
+        //     setShowAiSettings(true);
+        //     return;
+        // }
+        // ALLOWING EMPTY API KEY to support Server-Side Environment Variable Fallback
+        const apiKey = localStorage.getItem('gemini_api_key') || '';
 
         const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-001';
 
@@ -144,6 +146,9 @@ export function TranscriptionEditor() {
                 });
             } else {
                 console.error('AI Error:', data.error);
+                if (response.status === 401) {
+                    setShowAiSettings(true); // Open settings if auth fails
+                }
                 alert('Error al corregir: ' + (data.error || 'Error desconocido'));
             }
         } catch (error) {
