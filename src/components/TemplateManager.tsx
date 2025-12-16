@@ -23,7 +23,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'create-structured' | 'edit-structured'>('list');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [templateType, setTemplateType] = useState<'simple' | 'structured'>('simple');
-    const [filterType, setFilterType] = useState<'all' | 'structured'>('all');
+    const [filterType, setFilterType] = useState<'all' | 'structured'>('structured');
 
     // Get unique categories from templates + default categories
     const allCategories = useMemo(() => {
@@ -284,10 +284,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                                     window.location.reload();
                                 }}
                                 onCancel={() => {
-                                    // Delete the template if user cancels
-                                    if (editingTemplate) {
-                                        removeTemplate(editingTemplate.id);
-                                    }
+                                    // Just close without deleting. User can delete manually if needed.
                                     setEditingTemplate(null);
                                     setName('');
                                     setCategory('Técnica');
