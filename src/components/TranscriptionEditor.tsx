@@ -116,7 +116,7 @@ export function TranscriptionEditor() {
             return;
         }
 
-        const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+        const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-001';
 
         if (!fullText.trim()) return;
 
@@ -268,6 +268,13 @@ export function TranscriptionEditor() {
                         title="Plantillas"
                     >
                         <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    <button
+                        onClick={() => setShowAiSettings(!showAiSettings)}
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+                        title="Configuración IA"
+                    >
+                        <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </button>
                     <button
                         onClick={() => setShowSettings(!showSettings)}
