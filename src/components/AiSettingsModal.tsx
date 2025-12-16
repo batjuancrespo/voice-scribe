@@ -14,9 +14,13 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     const [isVisible, setIsVisible] = useState(false);
 
     const MODELS = [
-        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Recomendado, Rápido)' },
-        { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (Más ligero)' },
-        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Más potente, más lento)' },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Alias)' },
+        { id: 'gemini-1.5-flash-001', name: 'Gemini 1.5 Flash-001 (Estable)' },
+        { id: 'gemini-1.5-flash-002', name: 'Gemini 1.5 Flash-002 (Nuevo)' },
+        { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B' },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Alias)' },
+        { id: 'gemini-1.5-pro-001', name: 'Gemini 1.5 Pro-001 (Estable)' },
+        { id: 'gemini-1.5-pro-002', name: 'Gemini 1.5 Pro-002 (Nuevo)' },
         { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' }
     ];
 
