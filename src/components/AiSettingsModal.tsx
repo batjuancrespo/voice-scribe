@@ -66,11 +66,16 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     }, [isOpen, fetchModels]);
 
     const handleSave = () => {
+        // Clear key if empty (server fallback), otherwise save trimmed key
         if (apiKey.trim()) {
             localStorage.setItem('gemini_api_key', apiKey.trim());
-            localStorage.setItem('gemini_model', model);
-            onClose();
+        } else {
+            localStorage.removeItem('gemini_api_key');
         }
+
+        // Always save the model
+        localStorage.setItem('gemini_model', model);
+        onClose();
     };
 
     if (!isOpen) return null;
