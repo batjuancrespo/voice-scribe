@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { AiSettingsModal } from './AiSettingsModal';
+import { CorrectionReviewModal } from './CorrectionReviewModal';
 import { Mic, Square, Trash2, Book, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle, Sparkles, Wand2 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
@@ -34,6 +35,7 @@ export function TranscriptionEditor() {
     const [showTemplates, setShowTemplates] = useState(false);
     const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
+    const [reviewData, setReviewData] = useState<{ original: string; corrected: string } | null>(null);
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [copied, setCopied] = useState(false);
 
@@ -136,8 +138,10 @@ export function TranscriptionEditor() {
             const data = await response.json();
 
             if (response.ok && data.correctedText) {
-                setFullText(data.correctedText);
-                setSelectionRange({ start: data.correctedText.length, end: data.correctedText.length });
+                setReviewData({
+                    original: fullText,
+                    corrected: data.correctedText
+                });
             } else {
                 console.error('AI Error:', data.error);
                 alert('Error al corregir: ' + (data.error || 'Error desconocido'));
@@ -148,6 +152,12 @@ export function TranscriptionEditor() {
         } finally {
             setIsCorrecting(false);
         }
+    };
+
+    const handleApplyReview = (finalText: string) => {
+        setFullText(finalText);
+        setSelectionRange({ start: finalText.length, end: finalText.length });
+        setReviewData(null);
     };
 
     const handleInsertTemplate = useCallback((content: string) => {
@@ -397,6 +407,14 @@ export function TranscriptionEditor() {
                             <AiSettingsModal
                                 isOpen={showAiSettings}
                                 onClose={() => setShowAiSettings(false)}
+                            />
+
+                            <CorrectionReviewModal
+                                isOpen={!!reviewData}
+                                onClose={() => setReviewData(null)}
+                                originalText={reviewData?.original || ''}
+                                correctedText={reviewData?.corrected || ''}
+                                onApply={handleApplyReview}
                             />
 
 
