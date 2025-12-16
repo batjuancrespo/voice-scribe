@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Save, Key, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Sparkles, Save, Key, X, RefreshCw } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 
 interface AiSettingsModalProps {
     isOpen: boolean;
@@ -10,28 +11,59 @@ interface AiSettingsModalProps {
 
 export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     const [apiKey, setApiKey] = useState('');
-    const [model, setModel] = useState('gemini-1.5-flash');
+    const [model, setModel] = useState('gemini-1.5-flash-001');
     const [isVisible, setIsVisible] = useState(false);
 
-    const MODELS = [
+    // Default safe fallback models
+    const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([
         { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Alias)' },
         { id: 'gemini-1.5-flash-001', name: 'Gemini 1.5 Flash-001 (Estable)' },
-        { id: 'gemini-1.5-flash-002', name: 'Gemini 1.5 Flash-002 (Nuevo)' },
-        { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B' },
-        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Alias)' },
-        { id: 'gemini-1.5-pro-001', name: 'Gemini 1.5 Pro-001 (Estable)' },
-        { id: 'gemini-1.5-pro-002', name: 'Gemini 1.5 Pro-002 (Nuevo)' },
-        { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' }
-    ];
+        { id: 'gemini-1.5-flash-002', name: 'Gemini 1.5 Flash-002 (Nuevo)' }
+    ]);
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
 
+    // Dynamic model fetching
+    const fetchModels = useCallback(async (key: string) => {
+        if (!key) return;
+        setIsLoadingModels(true);
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+            const data = await response.json();
+            if (data.models) {
+                const validModels = data.models
+                    .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+                    .map((m: any) => ({
+                        id: m.name.replace('models/', ''),
+                        name: m.displayName || m.name
+                    }))
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+                if (validModels.length > 0) {
+                    setAvailableModels(validModels);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching models:', error);
+            // Don't clear defaults on error, just log
+        } finally {
+            setIsLoadingModels(false);
+        }
+    }, []);
+
+    // Load initial state
     useEffect(() => {
         if (isOpen) {
             const storedKey = localStorage.getItem('gemini_api_key');
             const storedModel = localStorage.getItem('gemini_model');
-            if (storedKey) setApiKey(storedKey);
+
+            if (storedKey) {
+                setApiKey(storedKey);
+                // Auto-fetch using stored key
+                fetchModels(storedKey);
+            }
             if (storedModel) setModel(storedModel);
         }
-    }, [isOpen]);
+    }, [isOpen, fetchModels]);
 
     const handleSave = () => {
         if (apiKey.trim()) {
@@ -85,26 +117,35 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
                             ¿No tienes clave? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">Consíguela gratis aquí</a>.
-                            Se guardará en tu navegador de forma segura.
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Sparkles className="w-4 h-4 mr-1.5 text-purple-600" />
-                            Modelo de IA
-                        </label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                                <Sparkles className="w-4 h-4 mr-1.5 text-purple-600" />
+                                Modelo de IA
+                            </label>
+                            <button
+                                onClick={() => fetchModels(apiKey)}
+                                disabled={isLoadingModels || !apiKey}
+                                className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center"
+                            >
+                                <RefreshCw className={twMerge("w-3 h-3 mr-1", isLoadingModels && "animate-spin")} />
+                                {isLoadingModels ? 'Cargando...' : 'Actualizar lista'}
+                            </button>
+                        </div>
                         <select
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
                             className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-gray-50 dark:bg-gray-800 dark:text-white"
                         >
-                            {MODELS.map(m => (
+                            {availableModels.map(m => (
                                 <option key={m.id} value={m.id}>{m.name}</option>
                             ))}
                         </select>
                         <p className="text-xs text-gray-500 mt-2">
-                            Si el modelo por defecto da error, prueba con otro como "Flash-8B".
+                            Si no ves modelos, asegúrate de que tu API Key sea válida.
                         </p>
                     </div>
 
