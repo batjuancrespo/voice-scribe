@@ -47,7 +47,7 @@ Fix grammar, spelling, punctuation, and standardized formats without changing th
 FORMATTING RULES:
 1. Standardize measurements: "3 por 4 centímetros" -> "3x4 cm", "15 mm" (space between number and unit).
 2. Numbers: Use digits for measurements ("3 cm") but words for general counting if appropriate ("tres lesiones").
-3. Paragraphs: Create clear paragraphs based on context changes or explicit "punto y aparte" commands.
+3. **LINE BREAKS**: STRICTLY PRESERVE all existing line breaks (\\n). Do NOT merge paragraphs. Only add new breaks if explicitly dictated ("punto y aparte").
 4. Capitalization: Sentence case. Capitalize proper nouns and start of sentences.
 
 ${vocabularyContext}
