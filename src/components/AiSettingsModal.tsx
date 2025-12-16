@@ -10,18 +10,29 @@ interface AiSettingsModalProps {
 
 export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     const [apiKey, setApiKey] = useState('');
+    const [model, setModel] = useState('gemini-1.5-flash');
     const [isVisible, setIsVisible] = useState(false);
+
+    const MODELS = [
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Recomendado, Rápido)' },
+        { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (Más ligero)' },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Más potente, más lento)' },
+        { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' }
+    ];
 
     useEffect(() => {
         if (isOpen) {
             const storedKey = localStorage.getItem('gemini_api_key');
+            const storedModel = localStorage.getItem('gemini_model');
             if (storedKey) setApiKey(storedKey);
+            if (storedModel) setModel(storedModel);
         }
     }, [isOpen]);
 
     const handleSave = () => {
         if (apiKey.trim()) {
             localStorage.setItem('gemini_api_key', apiKey.trim());
+            localStorage.setItem('gemini_model', model);
             onClose();
         }
     };
@@ -71,6 +82,25 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                         <p className="text-xs text-gray-500 mt-2">
                             ¿No tienes clave? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">Consíguela gratis aquí</a>.
                             Se guardará en tu navegador de forma segura.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                            <Sparkles className="w-4 h-4 mr-1.5 text-purple-600" />
+                            Modelo de IA
+                        </label>
+                        <select
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-gray-50 dark:bg-gray-800 dark:text-white"
+                        >
+                            {MODELS.map(m => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Si el modelo por defecto da error, prueba con otro como "Flash-8B".
                         </p>
                     </div>
 

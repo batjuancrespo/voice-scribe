@@ -116,6 +116,8 @@ export function TranscriptionEditor() {
             return;
         }
 
+        const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+
         if (!fullText.trim()) return;
 
         setIsCorrecting(true);
@@ -126,6 +128,7 @@ export function TranscriptionEditor() {
                 body: JSON.stringify({
                     text: fullText,
                     apiKey,
+                    model,
                     userDictionary: replacements // Pass user vocabulary for phonetic matching
                 })
             });
@@ -325,8 +328,8 @@ export function TranscriptionEditor() {
                                     onClick={handleAiCorrection}
                                     disabled={!fullText || isCorrecting}
                                     className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 border ${isCorrecting
-                                            ? 'bg-purple-100 text-purple-600 border-purple-200 animate-pulse'
-                                            : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-sm hover:shadow'
+                                        ? 'bg-purple-100 text-purple-600 border-purple-200 animate-pulse'
+                                        : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-sm hover:shadow'
                                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                                     title="Corregir con IA"
                                 >
