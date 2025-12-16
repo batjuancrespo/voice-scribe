@@ -113,3 +113,43 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
 export function capitalizeIdeally(fullText: string): string {
     return fullText.replace(/(^|[.!?]\s+)([a-zñáéíóú])/g, (match) => match.toUpperCase());
 }
+
+export interface TextToken {
+    type: 'text' | 'variable';
+    content: string; // The literal text or the group content
+    options?: string[];
+}
+
+export function parseTemplateText(text: string): TextToken[] {
+    const regex = /\(([^)]+\/[^)]+)\)/g;
+    const tokens: TextToken[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            tokens.push({
+                type: 'text',
+                content: text.slice(lastIndex, match.index)
+            });
+        }
+
+        const options = match[1].split('/').map(s => s.trim());
+        tokens.push({
+            type: 'variable',
+            content: match[0],
+            options
+        });
+
+        lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+        tokens.push({
+            type: 'text',
+            content: text.slice(lastIndex)
+        });
+    }
+
+    return tokens;
+}

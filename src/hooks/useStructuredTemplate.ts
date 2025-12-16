@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranscription } from '@/hooks/useTranscription';
+import { parseTemplateText } from '@/lib/textProcessor';
 
 export interface TemplateField {
     id: string;
@@ -23,6 +24,9 @@ interface UseStructuredTemplateReturn {
     stopRecording: (fieldId: string, text: string) => void;
     resetField: (fieldId: string) => void;
     updateField: (fieldId: string, text: string) => void;
+
+    updateSelection: (fieldId: string, variableIndex: number, optionValue: string) => void;
+    selections: Record<string, Record<number, string>>;
     generateReport: () => string;
     stats: {
         total: number;
@@ -43,6 +47,20 @@ export const useStructuredTemplate = (
         }))
     );
     const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
+    const [selections, setSelections] = useState<Record<string, Record<number, string>>>({});
+
+    const updateSelection = useCallback((fieldId: string, variableIndex: number, optionValue: string) => {
+        setSelections(prev => {
+            const fieldSels = prev[fieldId] || {};
+            return {
+                ...prev,
+                [fieldId]: {
+                    ...fieldSels,
+                    [variableIndex]: optionValue
+                }
+            };
+        });
+    }, []);
 
     const startRecording = useCallback((fieldId: string) => {
         setFields(prev => prev.map(field =>
@@ -112,8 +130,25 @@ export const useStructuredTemplate = (
             sectionFields
                 .sort((a, b) => a.displayOrder - b.displayOrder)
                 .forEach(field => {
+
                     // Normalize text and ensure period at end
-                    let text = field.currentText.trim();
+                    let text = '';
+
+                    if (field.isEdited) {
+                        text = field.currentText.trim();
+                    } else {
+                        // Construct text from defaultText and selections
+                        const tokens = parseTemplateText(field.defaultText);
+                        const fieldSels = selections[field.id] || {};
+                        text = tokens.map((token, index) => {
+                            if (token.type === 'text') return token.content;
+                            if (token.options && token.options.length > 0) {
+                                return fieldSels[index] || token.options[0];
+                            }
+                            return token.content;
+                        }).join('').trim();
+                    }
+
                     if (text && !/[.!?]$/.test(text)) {
                         text += '.';
                     }
@@ -131,7 +166,7 @@ export const useStructuredTemplate = (
         });
 
         return report.trim();
-    }, [fields]);
+    }, [fields, selections]);
 
     const stats = {
         total: fields.length,
@@ -146,6 +181,9 @@ export const useStructuredTemplate = (
         stopRecording,
         resetField,
         updateField,
+
+        updateSelection,
+        selections,
         generateReport,
         stats
     };

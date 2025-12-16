@@ -6,7 +6,8 @@ import { useStructuredTemplate } from '@/hooks/useStructuredTemplate';
 import { useVocabulary } from '@/hooks/useVocabulary';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { TemplateField as DbTemplateField } from '@/hooks/useTemplates';
-import { Mic, Check, AlertTriangle, Play, Square, X, RotateCcw } from 'lucide-react';
+import { Mic, X, RotateCcw, Copy, Check, FileText, Square } from 'lucide-react';
+import { parseTemplateText } from '@/lib/textProcessor';
 
 interface StructuredTemplateEditorProps {
     fields: DbTemplateField[];
@@ -34,6 +35,8 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
         stopRecording: setFieldStopped,
         resetField,
         updateField,
+        updateSelection,
+        selections,
         generateReport,
         stats
     } = useStructuredTemplate(mappedFields);
@@ -219,12 +222,43 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                                 </div>
                                             </div>
 
-                                            <p className={`text-sm leading-relaxed ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
-                                                {field.currentText}
+                                            <div className={`text-sm leading-relaxed ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                                                {field.isEdited ? (
+                                                    <span>{field.currentText}</span>
+                                                ) : (
+                                                    <>
+                                                        {parseTemplateText(field.defaultText).map((token, idx) => {
+                                                            if (token.type === 'text') return <span key={idx}>{token.content}</span>;
+                                                            if (token.type === 'variable') {
+                                                                const options = token.options || [];
+                                                                const fieldSels = selections[field.id] || {};
+                                                                // If no selection, use first option (default)
+                                                                const selectedValue = fieldSels[idx] || options[0];
+
+                                                                return (
+                                                                    <span
+                                                                        key={idx}
+                                                                        className="inline-flex items-center mx-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/50 select-none transition-colors text-xs font-semibold"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const currentIndex = options.indexOf(selectedValue);
+                                                                            const nextIndex = (currentIndex + 1) % options.length;
+                                                                            updateSelection(field.id, idx, options[nextIndex]);
+                                                                        }}
+                                                                        title="Clic para cambiar opción"
+                                                                    >
+                                                                        {selectedValue}
+                                                                    </span>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })}
+                                                    </>
+                                                )}
                                                 {isActive && interimResult && (
                                                     <span className="text-gray-400 italic ml-1">{interimResult}</span>
                                                 )}
-                                            </p>
+                                            </div>
 
                                             {/* Status Indicator Bar */}
                                             <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${isActive ? 'bg-red-500' : isEdited ? 'bg-amber-400' : 'bg-green-400'
