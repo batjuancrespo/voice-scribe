@@ -43,8 +43,10 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
             result = result.filter(t => t.template_type === 'structured');
         }
 
-        if (selectedCategory === 'Todas') return result;
-        return result.filter(t => t.category === selectedCategory);
+        if (selectedCategory === 'Todas') {
+            return result.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        }
+        return result.filter(t => t.category === selectedCategory).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
     }, [templates, selectedCategory, filterType]);
 
     // Group templates by category
