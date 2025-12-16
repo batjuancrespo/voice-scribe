@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
-import { Plus, Trash, FileText, Copy, FolderOpen, Edit2, List } from 'lucide-react';
+import { Plus, Trash, FileText, Copy, FolderOpen, Edit2, List, ChevronUp, ChevronDown } from 'lucide-react';
 import { TemplateFieldEditor } from './TemplateFieldEditor';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -15,7 +15,7 @@ interface TemplateManagerProps {
 const DEFAULT_CATEGORIES = ['Técnica', 'TAC', 'RM', 'ECO', 'Otros'];
 
 export function TemplateManager({ onInsert, onInsertStructured, onClose }: TemplateManagerProps) {
-    const { templates, addTemplate, removeTemplate, updateTemplate } = useTemplates();
+    const { templates, addTemplate, removeTemplate, updateTemplate, updateTemplateOrder } = useTemplates();
     const [name, setName] = useState('');
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('Técnica');
@@ -98,6 +98,33 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
         setCategory('Técnica');
         setEditingTemplate(null);
         setViewMode('list');
+    };
+
+    const handleMoveTemplate = (templateId: string, direction: 'up' | 'down', list: Template[]) => {
+        const index = list.findIndex(t => t.id === templateId);
+        if (index === -1) return;
+
+        const neighborIndex = direction === 'up' ? index - 1 : index + 1;
+        if (neighborIndex < 0 || neighborIndex >= list.length) return;
+
+        const current = list[index];
+        const neighbor = list[neighborIndex];
+
+        // Swap display_order
+        // If they are missing display_order, use their current array index as fallback basis?
+        // No, assuming DB has values from migration. But if equal, we need to separate them.
+        let orderA = current.display_order || 0;
+        let orderB = neighbor.display_order || 0;
+
+        // Force separation if collision or missing
+        if (!orderA || !orderB || orderA === orderB) {
+            const now = Date.now(); // Simple quick fix strategy
+            orderA = now;
+            orderB = now + 1;
+        }
+
+        updateTemplateOrder(current.id, orderB);
+        updateTemplateOrder(neighbor.id, orderA);
     };
 
     return (
@@ -186,8 +213,19 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                                         {cat}
                                     </h3>
                                     <div className="space-y-2">
-                                        {temps.map((t) => (
-                                            <TemplateCard key={t.id} template={t} onInsert={onInsert} onInsertStructured={onInsertStructured} onDelete={removeTemplate} onEdit={handleStartEdit} />
+                                        {temps.map((t, i) => (
+                                            <TemplateCard
+                                                key={t.id}
+                                                template={t}
+                                                onInsert={onInsert}
+                                                onInsertStructured={onInsertStructured}
+                                                onDelete={removeTemplate}
+                                                onEdit={handleStartEdit}
+                                                onMoveUp={() => handleMoveTemplate(t.id, 'up', temps)}
+                                                onMoveDown={() => handleMoveTemplate(t.id, 'down', temps)}
+                                                isFirst={i === 0}
+                                                isLast={i === temps.length - 1}
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -195,8 +233,19 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                         ) : (
                             // Flat list for specific category
                             <div className="space-y-2">
-                                {filteredTemplates.map((t) => (
-                                    <TemplateCard key={t.id} template={t} onInsert={onInsert} onInsertStructured={onInsertStructured} onDelete={removeTemplate} onEdit={handleStartEdit} />
+                                {filteredTemplates.map((t, index) => (
+                                    <TemplateCard
+                                        key={t.id}
+                                        template={t}
+                                        onInsert={onInsert}
+                                        onInsertStructured={onInsertStructured}
+                                        onDelete={removeTemplate}
+                                        onEdit={handleStartEdit}
+                                        onMoveUp={() => handleMoveTemplate(t.id, 'up', filteredTemplates)}
+                                        onMoveDown={() => handleMoveTemplate(t.id, 'down', filteredTemplates)}
+                                        isFirst={index === 0}
+                                        isLast={index === filteredTemplates.length - 1}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -348,62 +397,80 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     );
 }
 
-function TemplateCard({ template, onInsert, onInsertStructured, onDelete, onEdit }: { template: Template; onInsert: (content: string) => void; onInsertStructured?: (template: Template) => void; onDelete: (id: string) => void; onEdit: (template: Template) => void }) {
+function TemplateCard({ template, onInsert, onInsertStructured, onDelete, onEdit, onMoveUp, onMoveDown, isFirst, isLast }: { template: Template; onInsert: (content: string) => void; onInsertStructured?: (template: Template) => void; onDelete: (id: string) => void; onEdit: (template: Template) => void; onMoveUp: () => void; onMoveDown: () => void; isFirst: boolean; isLast: boolean }) {
     return (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group shadow-sm hover:shadow-md">
-            <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">{template.name}</h3>
-                    {template.category && template.category !== 'General' && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block">
-                            {template.category}
-                        </span>
-                    )}
-                </div>
-                <div className="flex space-x-1">
-                    <button
-                        onClick={() => onEdit(template)}
-                        className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Editar"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => onDelete(template.id)}
-                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Eliminar"
-                    >
-                        <Trash className="w-4 h-4" />
-                    </button>
-                </div>
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group shadow-sm hover:shadow-md flex gap-3">
+            <div className="flex flex-col justify-center space-y-1">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                    disabled={isFirst}
+                    className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                    <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                    onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                    disabled={isLast}
+                    className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                    <ChevronDown className="w-4 h-4" />
+                </button>
             </div>
-            {template.template_type === 'structured' ? (
-                <div className="mb-3">
-                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        <List className="w-3 h-3 mr-1" />
-                        {template.fields?.length || 0} campos
-                    </span>
-                    <p className="text-xs text-gray-400 mt-1 italic">Plantilla inteligente interactiva</p>
+            <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-200">{template.name}</h3>
+                        {template.category && template.category !== 'General' && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block">
+                                {template.category}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex space-x-1">
+                        <button
+                            onClick={() => onEdit(template)}
+                            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            title="Editar"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onDelete(template.id)}
+                            className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            title="Eliminar"
+                        >
+                            <Trash className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
-            ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">{template.content}</p>
-            )}
+                {template.template_type === 'structured' ? (
+                    <div className="mb-3">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                            <List className="w-3 h-3 mr-1" />
+                            {template.fields?.length || 0} campos
+                        </span>
+                        <p className="text-xs text-gray-400 mt-1 italic">Plantilla inteligente interactiva</p>
+                    </div>
+                ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">{template.content}</p>
+                )}
 
-            <button
-                onClick={() => {
-                    if (template.template_type === 'structured' && onInsertStructured) {
-                        onInsertStructured(template);
-                    } else {
-                        onInsert(template.content || '');
-                    }
-                }}
-                className={`w-full py-2 rounded-lg text-sm font-medium flex justify-center items-center transition-colors ${template.template_type === 'structured'
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30'
-                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-                    }`}
-            >
-                <Copy className="w-4 h-4 mr-2" /> Insertar
-            </button>
+                <button
+                    onClick={() => {
+                        if (template.template_type === 'structured' && onInsertStructured) {
+                            onInsertStructured(template);
+                        } else {
+                            onInsert(template.content || '');
+                        }
+                    }}
+                    className={`w-full py-2 rounded-lg text-sm font-medium flex justify-center items-center transition-colors ${template.template_type === 'structured'
+                        ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30'
+                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                        }`}
+                >
+                    <Copy className="w-4 h-4 mr-2" /> Insertar
+                </button>
+            </div>
         </div>
     );
 }

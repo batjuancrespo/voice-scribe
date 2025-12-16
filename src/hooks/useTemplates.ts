@@ -20,6 +20,7 @@ export interface Template {
     content: string;
     category?: string;
     template_type?: 'simple' | 'structured';
+    display_order?: number;
     fields?: TemplateField[];
 }
 
@@ -35,6 +36,8 @@ export const useTemplates = () => {
                 .from('templates')
                 .select('*')
                 .order('category', { ascending: true })
+                .order('display_order', { ascending: true })
+                .order('display_order', { ascending: true })
                 .order('name', { ascending: true });
 
             if (templatesError) {
@@ -127,10 +130,27 @@ export const useTemplates = () => {
         }
     };
 
+    const updateTemplateOrder = async (id: string, newOrder: number) => {
+        // Optimistic update
+        setTemplates((prev) => prev.map(t =>
+            t.id === id ? { ...t, display_order: newOrder } : t
+        ));
+
+        const { error } = await supabase
+            .from('templates')
+            .update({ display_order: newOrder })
+            .eq('id', id);
+
+        if (error) {
+            console.error("Error updating template order:", error);
+        }
+    };
+
     return {
         templates,
         addTemplate,
         removeTemplate,
-        updateTemplate
+        updateTemplate,
+        updateTemplateOrder
     };
 };

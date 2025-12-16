@@ -65,6 +65,20 @@ export function TranscriptionEditor() {
         }
     };
 
+    // Auto-copy to clipboard when text changes
+    useEffect(() => {
+        if (!fullText) return;
+
+        const timer = setTimeout(() => {
+            navigator.clipboard.writeText(fullText).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }).catch(err => console.error('Auto-copy failed:', err));
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [fullText]);
+
     const handleCopyToClipboard = async () => {
         if (fullText) {
             await navigator.clipboard.writeText(fullText);
