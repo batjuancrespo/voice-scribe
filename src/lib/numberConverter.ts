@@ -79,7 +79,7 @@ export function convertTextNumbersToDigits(text: string): string {
     return result;
 }
 
-// Convert "te uno" or "té 1" to "T1"
+// Convert "te uno a" or "té 1 b" to "T1a", "T1b"
 export function processTNMStaging(text: string): string {
     let result = text;
     const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
@@ -90,16 +90,21 @@ export function processTNMStaging(text: string): string {
     // M matching: eme, me, m
 
     const patterns = [
-        { search: '(?:t[ée]|t)', prefix: 'T' },
-        { search: '(?:ene|ne|n)', prefix: 'N' },
-        { search: '(?:eme|me|m)', prefix: 'M' }
+        { search: '(?:estadio\\s+)?(?:t[ée]|t)', prefix: 'T' },
+        { search: '(?:estadio\\s+)?(?:ene|ne|n)', prefix: 'N' },
+        { search: '(?:estadio\\s+)?(?:eme|me|m)', prefix: 'M' }
     ];
 
     patterns.forEach(({ search, prefix }) => {
-        // Match: prefix + space (optional) + number (digit or text)
-        // We use the numbers already converted to digits if this is called AFTER convertTextNumbersToDigits
-        const regex = new RegExp(`${boundaryStart}${search}\\s*(\\d)${boundaryEnd}`, 'gi');
-        result = result.replace(regex, `${prefix}$1`);
+        // Match: boundary + phonetic prefix + number + optional letter (a, b, c, x)
+        // Example: "te uno a" -> "T1a", "te 2 b" -> "T2b"
+        // Support digits (1) or words transformed to digits (which happens before this call)
+        const regex = new RegExp(`${boundaryStart}${search}\\s*(\\d)\\s*([abcix])?${boundaryEnd}`, 'gi');
+
+        result = result.replace(regex, (match, num, sub) => {
+            const subStage = sub ? sub.toLowerCase() : '';
+            return `${prefix}${num}${subStage}`;
+        });
     });
 
     return result;

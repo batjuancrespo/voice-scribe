@@ -13,7 +13,8 @@ import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { AiSettingsModal } from './AiSettingsModal';
 import { CorrectionReviewModal } from './CorrectionReviewModal';
-import { Mic, Square, Trash2, Book, FileText, Copy, Moon, Sun, Check, LogOut, AlertTriangle, Sparkles, Wand2 } from 'lucide-react';
+import { Mic, Square, Trash2, Copy, Check, Settings, Sparkles, Wand2, LogOut, LayoutTemplate, MessageSquare, AlertTriangle, BookPlus, X, Sun, Moon, FileText, Book } from 'lucide-react';
+import { computeDiff } from '@/lib/diffUtils';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -33,6 +34,8 @@ export function TranscriptionEditor() {
     const [showSettings, setShowSettings] = useState(false);
     const [showAiSettings, setShowAiSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [editSuggestion, setEditSuggestion] = useState<{ original: string, replacement: string } | null>(null);
+    const isAutoChangeRef = useRef(false);
     const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [reviewData, setReviewData] = useState<{ original: string; corrected: string } | null>(null);
@@ -107,6 +110,30 @@ export function TranscriptionEditor() {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         window.location.reload();
+    };
+
+    // Manual Edit Detection for Auto-Learning
+    const handleManualChange = (newValue: string) => {
+        const oldValue = fullText;
+        setFullText(newValue);
+
+        if (isListening || isAutoChangeRef.current) return;
+
+        // Compare if it's a small correction
+        const diff = computeDiff(oldValue, newValue);
+        const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 2);
+        const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 1);
+
+        if (removed.length === 1 && added.length === 1) {
+            // Check if it's a word-for-word replacement and not a common word
+            const orig = removed[0];
+            const repl = added[0];
+
+            // Only suggest if they are different and not already in dictionary
+            if (orig !== repl && !replacements[orig.toLowerCase()]) {
+                setEditSuggestion({ original: orig, replacement: repl });
+            }
+        }
     };
 
     const handleAiCorrection = async () => {
@@ -233,8 +260,12 @@ export function TranscriptionEditor() {
             const newText = before + processedText + after;
             const newPos = before.length + processedText.length;
 
+            isAutoChangeRef.current = true;
             setFullText(newText);
             setSelectionRange({ start: newPos, end: newPos });
+
+            // Reset the auto-change flag after react has processed it
+            setTimeout(() => { isAutoChangeRef.current = false; }, 0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastEvent]);
@@ -370,7 +401,7 @@ export function TranscriptionEditor() {
                                 placeholder="Pulsa el micrófono para empezar a dictar..."
                                 value={fullText}
                                 onChange={(e) => {
-                                    setFullText(e.target.value);
+                                    handleManualChange(e.target.value);
                                     handleSelect();
                                 }}
                                 onSelect={handleSelect}
@@ -427,6 +458,45 @@ export function TranscriptionEditor() {
                             {isListening && interimResult && (
                                 <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic pointer-events-none border-l-4 border-blue-500 shadow-lg">
                                     {interimResult}
+                                </div>
+                            )}
+
+                            {/* Learning Suggestion Toast */}
+                            {editSuggestion && (
+                                <div className="absolute top-24 right-6 left-6 sm:left-auto sm:w-80 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-800 rounded-xl shadow-2xl p-4 animate-in slide-in-from-right duration-300 z-50">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="bg-purple-100 dark:bg-purple-900/50 p-1.5 rounded-lg">
+                                            <BookPlus className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                        </div>
+                                        <button onClick={() => setEditSuggestion(null)} className="text-gray-400 hover:text-gray-600">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                        ¿Añadir esta corrección al diccionario para que aprenda?
+                                    </p>
+                                    <div className="flex items-center space-x-2 text-xs font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded-lg mb-4">
+                                        <span className="text-red-500 line-through truncate max-w-[100px]">{editSuggestion.original}</span>
+                                        <span className="text-gray-400">→</span>
+                                        <span className="text-green-600 font-bold truncate max-w-[100px]">{editSuggestion.replacement}</span>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => {
+                                                addReplacement(editSuggestion.original, editSuggestion.replacement);
+                                                setEditSuggestion(null);
+                                            }}
+                                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                                        >
+                                            Guardar
+                                        </button>
+                                        <button
+                                            onClick={() => setEditSuggestion(null)}
+                                            className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-bold py-2 rounded-lg transition-colors"
+                                        >
+                                            Ignorar
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
