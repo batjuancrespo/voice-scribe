@@ -26,7 +26,7 @@ export function TranscriptionEditor() {
         stopListening,
     } = useTranscription();
 
-    const { replacements } = useVocabulary();
+    const { replacements, addReplacement } = useVocabulary();
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
 
@@ -418,6 +418,7 @@ export function TranscriptionEditor() {
                                 originalText={reviewData?.original || ''}
                                 correctedText={reviewData?.corrected || ''}
                                 onApply={handleApplyReview}
+                                onSaveToDictionary={addReplacement}
                             />
 
 

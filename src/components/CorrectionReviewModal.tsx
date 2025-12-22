@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Check, ArrowRight, Undo2, Ban } from 'lucide-react';
+import { X, Check, ArrowRight, Undo2, Ban, BookPlus } from 'lucide-react';
 import { computeDiff, DiffChunk } from '@/lib/diffUtils';
 
 interface CorrectionReviewModalProps {
@@ -10,14 +10,16 @@ interface CorrectionReviewModalProps {
     originalText: string;
     correctedText: string;
     onApply: (finalText: string) => void;
+    onSaveToDictionary?: (original: string, replacement: string) => void;
 }
 
 interface InteractiveChunk extends DiffChunk {
     id: number;
     status: 'accepted' | 'rejected'; // accepted = comply with AI (keep add, keep remove). rejected = revert to original.
+    saved?: boolean;
 }
 
-export function CorrectionReviewModal({ isOpen, onClose, originalText, correctedText, onApply }: CorrectionReviewModalProps) {
+export function CorrectionReviewModal({ isOpen, onClose, originalText, correctedText, onApply, onSaveToDictionary }: CorrectionReviewModalProps) {
     const [chunks, setChunks] = useState<InteractiveChunk[]>([]);
 
     useEffect(() => {
@@ -31,6 +33,34 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
         setChunks(prev => prev.map(c =>
             c.id === id ? { ...c, status: c.status === 'accepted' ? 'rejected' : 'accepted' } : c
         ));
+    };
+
+    const handleSaveToDictionary = (chunkId: number) => {
+        const chunk = chunks.find(c => c.id === chunkId);
+        if (!chunk || !onSaveToDictionary) return;
+
+        // Try to find the associated "removed" chunk to get the "original" word
+        // Usually corrections come in pairs: [removed(old), added(new)] or [added(new), removed(old)]
+        let original = "";
+        const currentIndex = chunks.findIndex(c => c.id === chunkId);
+
+        // Check previous chunk
+        if (currentIndex > 0 && chunks[currentIndex - 1].removed) {
+            original = chunks[currentIndex - 1].value.trim();
+        }
+        // Or check next chunk
+        else if (currentIndex < chunks.length - 1 && chunks[currentIndex + 1].removed) {
+            original = chunks[currentIndex + 1].value.trim();
+        }
+
+        if (original && chunk.value.trim()) {
+            onSaveToDictionary(original, chunk.value.trim());
+            setChunks(prev => prev.map(c => c.id === chunkId ? { ...c, saved: true } : c));
+        } else {
+            // Fallback: if we can't find original, maybe just ask or ignore
+            // For now, let's just alert
+            alert("Selecciona un cambio que corrija una palabra específica para guardarlo.");
+        }
     };
 
     const finalPreview = useMemo(() => {
@@ -79,14 +109,30 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                                 return (
                                     <span
                                         key={chunk.id}
-                                        onClick={() => handleToggleChunk(chunk.id)}
-                                        className={`cursor-pointer transition-colors px-1 rounded mx-0.5 select-none ${chunk.status === 'accepted'
+                                        className="inline-flex items-center group"
+                                    >
+                                        <span
+                                            onClick={() => handleToggleChunk(chunk.id)}
+                                            className={`cursor-pointer transition-colors px-1 rounded mx-0.5 select-none ${chunk.status === 'accepted'
                                                 ? 'bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-100 hover:bg-green-300' // Live Addition
                                                 : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 line-through decoration-gray-500' // Rejected Addition (Hidden effectively but shown as crossed out preview)
-                                            }`}
-                                        title={chunk.status === 'accepted' ? "Clic para rechazar esta adición" : "Clic para aceptar esta adición"}
-                                    >
-                                        {chunk.value}
+                                                }`}
+                                            title={chunk.status === 'accepted' ? "Clic para rechazar esta adición" : "Clic para aceptar esta adición"}
+                                        >
+                                            {chunk.value}
+                                        </span>
+                                        {chunk.status === 'accepted' && onSaveToDictionary && !chunk.saved && (
+                                            <button
+                                                onClick={() => handleSaveToDictionary(chunk.id)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-1 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 rounded hover:bg-purple-200 dark:hover:bg-purple-800"
+                                                title="Aprender: Guardar en diccionario"
+                                            >
+                                                <BookPlus className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                        {chunk.saved && (
+                                            <span className="ml-1 text-[10px] font-bold text-purple-500 uppercase">Aprendido</span>
+                                        )}
                                     </span>
                                 );
                             }
@@ -96,8 +142,8 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                                         key={chunk.id}
                                         onClick={() => handleToggleChunk(chunk.id)}
                                         className={`cursor-pointer transition-colors px-1 rounded mx-0.5 select-none ${chunk.status === 'accepted'
-                                                ? 'bg-red-200 text-red-900 line-through decoration-red-900 dark:bg-red-900/50 dark:text-red-100 hover:bg-red-300' // Live Deletion (Crossed out)
-                                                : 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100 border border-blue-200' // Rejected Deletion (Restored Original)
+                                            ? 'bg-red-200 text-red-900 line-through decoration-red-900 dark:bg-red-900/50 dark:text-red-100 hover:bg-red-300' // Live Deletion (Crossed out)
+                                            : 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100 border border-blue-200' // Rejected Deletion (Restored Original)
                                             }`}
                                         title={chunk.status === 'accepted' ? "Clic para restaurar (rechazar borrado)" : "Clic para borrar (aceptar borrado)"}
                                     >

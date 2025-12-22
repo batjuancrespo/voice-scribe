@@ -49,13 +49,27 @@ TASK:
 Refine the following medical transcription text. 
 Fix grammar, spelling, punctuation, and standardized formats without changing the clinical meaning.
 
+BASE RADIOLOGY GLOSSARY:
+- BIRADS (I, II, III, IVa, IVb, IVc, V, VI)
+- ateromatosis, ateromatosa, placas de ateroma
+- hipoecogénico, isoecogénico, hiperecogénico, anecoico
+- esteatosis, parénquima, hepato-esplenomegalia
+- osteofitos, discopatía, espondilolistesis
+- adenopatía, linfadenopatía, axilar, inguinal
+- nódulo, quiste, lesión ocupante de espacio (LOE)
+- ecogenicidad, ecosonografía, doppler
+
 FORMATTING RULES:
 1. Standardize measurements: "3 por 4 centímetros" -> "3x4 cm", "15 mm" (space between number and unit).
 2. Numbers: Use digits for measurements ("3 cm") but words for general counting if appropriate ("tres lesiones").
-3. **LINE BREAKS**: STRICTLY PRESERVE all existing line breaks (\\n). Do NOT merge paragraphs. Only add new breaks if explicitly dictated ("punto y aparte").
+3. **LINE BREAKS**: STRICTLY PRESERVE all existing line breaks (\n). Do NOT merge paragraphs. Only add new breaks if explicitly dictated ("punto y aparte").
 4. Capitalization: Sentence case. Capitalize proper nouns and start of sentences.
 
 ${vocabularyContext}
+
+CRITICAL VOCABULARY INSTRUCTION:
+- Give HIGHEST PRIORITY to terms in the "USER SPECIFIC CORRECTIONS" or "BASE RADIOLOGY GLOSSARY".
+- If a word in the input sounds like it could be one of these terms (even if the browser typed something else), assume it is the technical term.
 
 INPUT TEXT:
 "${text}"
