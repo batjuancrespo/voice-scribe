@@ -37,7 +37,7 @@ export function TranscriptionEditor() {
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [reviewData, setReviewData] = useState<{ original: string; corrected: string } | null>(null);
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
-    const [copied, setCopied] = useState(false);
+    const [lastCopiedText, setLastCopiedText] = useState('');
 
     const [fullText, setFullText] = useState('');
     const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
@@ -76,8 +76,7 @@ export function TranscriptionEditor() {
 
         const timer = setTimeout(() => {
             navigator.clipboard.writeText(fullText).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
+                setLastCopiedText(fullText);
             }).catch(err => console.error('Auto-copy failed:', err));
         }, 1000);
 
@@ -87,8 +86,7 @@ export function TranscriptionEditor() {
     const handleCopyToClipboard = async () => {
         if (fullText) {
             await navigator.clipboard.writeText(fullText);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            setLastCopiedText(fullText);
         }
     };
 
@@ -341,8 +339,8 @@ export function TranscriptionEditor() {
                                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Copiar al portapapeles"
                                 >
-                                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                    <span className="text-sm font-medium">{copied ? 'Copiado' : 'Copiar'}</span>
+                                    {fullText === lastCopiedText ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                    <span className="text-sm font-medium">{fullText === lastCopiedText ? 'Copiado' : 'Copiar'}</span>
                                 </button>
                             </div>
                             <div className="flex items-center space-x-2">
