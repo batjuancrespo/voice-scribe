@@ -39,8 +39,7 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     // 1. Apply Radiology Dictionary (pre-loaded medical terms)
     const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
 
-    // Use a Spanish-friendly word boundary to avoid partial matches (e.g. "hipo" matching in "hipotiroidismo")
-    // We match start of string or non-alphanumeric, and ensure no alphanumeric follow
+    // Use Spanish-friendly word boundaries to avoid partial matches
     const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
     const boundaryEnd = '(?![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
 
@@ -77,16 +76,17 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
 
     // 4. Basic Punctuation Replacement
     Object.entries(PUNCTUATION_MAP).forEach(([key, value]) => {
-        let pattern = key;
-        // If key starts with space, allow matching start of line too
-        if (pattern.startsWith(' ')) {
-            const word = pattern.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special chars
-            pattern = `(?:^|\\s)${word}`;
+        let regex;
+
+        if (key.startsWith(' ')) {
+            const word = key.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Match start of line or space + word + boundaryEnd
+            regex = new RegExp(`(?:^|\\s)${word}${boundaryEnd}`, "gi");
         } else {
-            pattern = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const word = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            regex = new RegExp(`${boundaryStart}${word}${boundaryEnd}`, "gi");
         }
 
-        const regex = new RegExp(pattern, "gi");
         processed = processed.replace(regex, value);
     });
 

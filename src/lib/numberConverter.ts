@@ -32,21 +32,24 @@ const DECIMALS: Record<string, string> = {
 export function convertTextNumbersToDigits(text: string): string {
     let result = text;
 
+    const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+    const boundaryEnd = '(?![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+
     // 1. Convert common decimal patterns
     Object.entries(DECIMALS).forEach(([textNum, digit]) => {
-        const regex = new RegExp(`\\b${textNum}\\b`, 'gi');
+        const regex = new RegExp(`${boundaryStart}${textNum}${boundaryEnd}`, 'gi');
         result = result.replace(regex, digit);
     });
 
     // 2. Convert individual text numbers (simple cases)
     Object.entries(UNITS).sort((a, b) => b[0].length - a[0].length).forEach(([textNum, digit]) => {
         // Only replace if it's a standalone number (word boundaries)
-        const regex = new RegExp(`\\b${textNum}\\b`, 'gi');
+        const regex = new RegExp(`${boundaryStart}${textNum}${boundaryEnd}`, 'gi');
         result = result.replace(regex, digit.toString());
     });
 
     // 3. Convert compound numbers like "treinta y cinco" → "35"
-    result = result.replace(/\b(treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa)\s+y\s+(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)\b/gi,
+    result = result.replace(new RegExp(`${boundaryStart}(treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa)\\s+y\\s+(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)${boundaryEnd}`, "gi"),
         (match, tens, units) => {
             const tensValue = UNITS[tens.toLowerCase()] || 0;
             const unitsValue = UNITS[units.toLowerCase()] || 0;
@@ -58,13 +61,13 @@ export function convertTextNumbersToDigits(text: string): string {
     result = result.replace(/(\d+)\s+por\s+(\d+)/gi, '$1x$2');
 
     // 5. Convert percentage
-    result = result.replace(/\bpor\s+ciento\b/gi, '%');
+    result = result.replace(new RegExp(`${boundaryStart}por\\s+ciento${boundaryEnd}`, "gi"), '%');
 
     // 6. Convert mathematical symbols
-    result = result.replace(/\bmás\s+menos\b/gi, '±');
-    result = result.replace(/\bmenor\s+que\b/gi, '<');
-    result = result.replace(/\bmayor\s+que\b/gi, '>');
-    result = result.replace(/\bgrados\b/gi, '°');
+    result = result.replace(new RegExp(`${boundaryStart}más\\s+menos${boundaryEnd}`, "gi"), '±');
+    result = result.replace(new RegExp(`${boundaryStart}menor\\s+que${boundaryEnd}`, "gi"), '<');
+    result = result.replace(new RegExp(`${boundaryStart}mayor\\s+que${boundaryEnd}`, "gi"), '>');
+    result = result.replace(new RegExp(`${boundaryStart}grados${boundaryEnd}`, "gi"), '°');
 
     // 7. Measurement patterns - "de X milímetros" → "de X mm" (already handled by dictionary)
     // But ensure spacing: "15mm" → "15 mm"
