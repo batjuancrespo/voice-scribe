@@ -79,6 +79,32 @@ export function convertTextNumbersToDigits(text: string): string {
     return result;
 }
 
+// Convert "te uno" or "té 1" to "T1"
+export function processTNMStaging(text: string): string {
+    let result = text;
+    const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+    const boundaryEnd = '(?![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+
+    // T matching: te, té, t
+    // N matching: ene, ne, n
+    // M matching: eme, me, m
+
+    const patterns = [
+        { search: '(?:t[ée]|t)', prefix: 'T' },
+        { search: '(?:ene|ne|n)', prefix: 'N' },
+        { search: '(?:eme|me|m)', prefix: 'M' }
+    ];
+
+    patterns.forEach(({ search, prefix }) => {
+        // Match: prefix + space (optional) + number (digit or text)
+        // We use the numbers already converted to digits if this is called AFTER convertTextNumbersToDigits
+        const regex = new RegExp(`${boundaryStart}${search}\\s*(\\d)${boundaryEnd}`, 'gi');
+        result = result.replace(regex, `${prefix}$1`);
+    });
+
+    return result;
+}
+
 // Convert ranges: "de quince a veinte" → "de 15 a 20"
 export function convertNumberRanges(text: string): string {
     // This is already handled by individual number conversion above
@@ -95,6 +121,9 @@ export function processMedicalMeasurements(text: string): string {
 
     // "de aproximadamente X mm"
     result = result.replace(/aproximadamente\s+(\d+)/gi, '≈$1');
+
+    // TNM Staging
+    result = processTNMStaging(result);
 
     return result;
 }

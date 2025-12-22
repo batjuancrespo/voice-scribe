@@ -287,5 +287,8 @@ export const RADIOLOGY_HINTS = [
     "bilateral", "unilateral", "heterogéneo", "homogéneo",
 
     // Medidas
-    "milímetros", "centímetros"
+    "milímetros", "centímetros",
+
+    // Estadiaje TNM
+    "T1", "T2", "T3", "T4", "N1", "N2", "M0", "M1"
 ];
