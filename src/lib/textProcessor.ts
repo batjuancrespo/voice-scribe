@@ -39,9 +39,14 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     // 1. Apply Radiology Dictionary (pre-loaded medical terms)
     const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
 
+    // Use a Spanish-friendly word boundary to avoid partial matches (e.g. "hipo" matching in "hipotiroidismo")
+    // We match start of string or non-alphanumeric, and ensure no alphanumeric follow
+    const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+    const boundaryEnd = '(?![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
+
     radiologyReplacements.forEach(([original, replacement]) => {
         const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(escaped, "gi");
+        const regex = new RegExp(`${boundaryStart}${escaped}${boundaryEnd}`, "gi");
         processed = processed.replace(regex, replacement);
     });
 
@@ -56,7 +61,7 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
 
     sortedReplacements.forEach(([original, replacement]) => {
         const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(escaped, "gi");
+        const regex = new RegExp(`${boundaryStart}${escaped}${boundaryEnd}`, "gi");
         const beforeReplace = processed;
         processed = processed.replace(regex, replacement);
 
