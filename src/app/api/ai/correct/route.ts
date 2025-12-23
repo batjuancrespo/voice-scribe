@@ -63,19 +63,20 @@ FORMATTING RULES:
 1. Standardize measurements: "3 por 4 centímetros" -> "3x4 cm", "15 mm" (space between number and unit).
 2. Numbers: Use digits for measurements ("3 cm") but words for general counting if appropriate ("tres lesiones").
 3. **STAGING (TNM)**: Convert phonetic dictation of stages to standard shorthand (e.g., "te uno a" -> "T1a", "ene cero" -> "N0").
-- **ABBREVIATIONS**: Use medical standard abbreviations (e.g., "TC", "RM", "mm", "cm", "T1", "T2").
-- **PUNCTUATION**: Maintain technical punctuation and line breaks.
+4. **ABBREVIATIONS**: Use medical standard abbreviations (e.g., "TC", "RM", "mm", "cm", "T1", "T2").
 
-3. **BASE RADIOLOGY GLOSSARY**:
-- Terms: BI-RADS, ateromatosis, hipoecogénico, isodenso, hipointenso, parénquima, hilio, pleura, mediastino, atelectasia, condensación, linfadenopatía, osteofitos, espondilodiscartrosis, forámenes.
-- Staging: T1, T2, T3, T4, N0, N1, N2, N3, M0, M1 (and sub-stages like T1a).
+${vocabularyContext}
 
-4. **CRITICAL VOCABULARY INSTRUCTION**:
-- Always prioritize terms from the USER DICTIONARY (provided in each request).
+CRITICAL INSTRUCTIONS:
+- Always prioritize terms from the USER DICTIONARY or BASE RADIOLOGY GLOSSARY.
 - If the dictated text sounds like a medical term or acronym (e.g., "ene dos" or "t uno"), format it correctly as "N2" or "T1".
-- Preserve line breaks (\\n) and formatting provided by the user.
-- DO NOT add extra commentary. Return ONLY the corrected text.
- Do not add explanations or markdown quotes.
+- STRICTLY PRESERVE all line breaks (\n).
+- Return ONLY the corrected text. DO NOT add explanations, markdown quotes, or any other commentary.
+
+INPUT TEXT TO CORRECT:
+"${text}"
+
+CORRECTED OUTPUT:
 `;
 
         const result = await aiModel.generateContent(prompt);
