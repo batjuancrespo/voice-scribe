@@ -56,20 +56,22 @@ export const useAudioLevel = (): AudioLevelHook => {
         const checkLevel = () => {
             analyser.getByteFrequencyData(dataArray);
 
-            // Calculate average volume
-            let sum = 0;
+            // Calculate peak volume instead of average
+            // This ignores silence between words and focuses on the actual voice energy
+            let peak = 0;
             for (let i = 0; i < bufferLength; i++) {
-                sum += dataArray[i];
+                if (dataArray[i] > peak) peak = dataArray[i];
             }
-            const average = sum / bufferLength;
 
-            // Convert to 0-100 scale
-            const level = Math.min(100, (average / 128) * 100);
-            setAudioLevel(level);
+            // Convert to 0-100 scale (160 is a safe mid-range peak for most mics)
+            const rawLevel = Math.min(100, (peak / 160) * 100);
 
-            // Check if audio is too low
-            setIsLow(level > 0 && level < 15);
-            setIsMuted(level < 2);
+            // Smoothing to avoid flickering
+            setAudioLevel(prev => (prev * 0.7) + (rawLevel * 0.3));
+
+            // Check if audio is too low (Reduced thresholds)
+            setIsLow(rawLevel > 1 && rawLevel < 8);
+            setIsMuted(rawLevel <= 1);
 
             animationFrameRef.current = requestAnimationFrame(checkLevel);
         };
