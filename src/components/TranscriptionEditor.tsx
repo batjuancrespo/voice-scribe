@@ -54,6 +54,30 @@ export function TranscriptionEditor() {
     useEffect(() => { fullTextRef.current = fullText; }, [fullText]);
     useEffect(() => { selectionRangeRef.current = selectionRange; }, [selectionRange]);
 
+    // Keyboard Shortcut: Shift + Meta (Command/Windows)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Meta is Command on Mac, Windows key on Windows.
+            // Check for Shift + Meta
+            if (e.shiftKey && (e.metaKey || e.ctrlKey)) {
+                // If the user wants Shift+Meta specifically, but on some browsers Meta might be blocked or tied to OS.
+                // We'll also allow Shift+Ctrl as a fallback for some environments.
+                e.preventDefault();
+
+                if (isListening) {
+                    stopListening();
+                    cleanupAudio();
+                } else {
+                    startListening();
+                    initAudio();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isListening, startListening, stopListening, initAudio, cleanupAudio]);
+
     // Dark mode effect
     useEffect(() => {
         if (darkMode) {
@@ -533,7 +557,15 @@ export function TranscriptionEditor() {
                 <>
                     <div className="flex justify-center pb-8">
                         <button
-                            onClick={isListening ? stopListening : startListening}
+                            onClick={() => {
+                                if (isListening) {
+                                    stopListening();
+                                    cleanupAudio();
+                                } else {
+                                    startListening();
+                                    initAudio();
+                                }
+                            }}
                             className={twMerge(
                                 "group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4",
                                 isListening

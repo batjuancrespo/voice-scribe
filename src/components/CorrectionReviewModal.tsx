@@ -103,7 +103,7 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
                     {/* Visual Diff Editor */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 leading-relaxed text-lg font-serif">
+                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 leading-relaxed text-lg font-serif whitespace-pre-wrap">
                         {chunks.map((chunk) => {
                             if (chunk.added) {
                                 return (
@@ -158,7 +158,7 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                     {/* Preview of Final Result */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Vista Previa Final</h3>
-                        <div className="p-4 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 italic">
+                        <div className="p-4 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 italic whitespace-pre-wrap">
                             {finalPreview}
                         </div>
                     </div>
