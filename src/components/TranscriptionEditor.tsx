@@ -18,6 +18,7 @@ import { computeDiff } from '@/lib/diffUtils';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
+    const { replacements, addReplacement } = useVocabulary();
     const {
         isListening,
         interimResult,
@@ -25,9 +26,8 @@ export function TranscriptionEditor() {
         error,
         startListening,
         stopListening,
-    } = useTranscription();
+    } = useTranscription(replacements);
 
-    const { replacements, addReplacement } = useVocabulary();
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
 
@@ -185,6 +185,31 @@ export function TranscriptionEditor() {
     };
 
     const handleApplyReview = (finalText: string) => {
+        const originalText = reviewData?.original || '';
+
+        // Implicit Learning: Find differences and save them automatically if they are clear corrections
+        if (originalText && finalText !== originalText) {
+            const diff = computeDiff(originalText, finalText);
+            const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 3);
+            const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 3);
+
+            // If it's a simple 1-to-1 word replacement that looks like a technical correction
+            if (removed.length === 1 && added.length === 1 && diff.length < 15) {
+                const orig = removed[0];
+                const repl = added[0];
+
+                // Case-insensitive check to avoid duplicates like "Eco" -> "Eco"
+                const exists = Object.entries(replacements).some(
+                    ([err, corr]) => err.toLowerCase() === orig.toLowerCase() && corr.toLowerCase() === repl.toLowerCase()
+                );
+
+                if (orig.toLowerCase() !== repl.toLowerCase() && !exists) {
+                    console.log(`[Implicit Learning] Saving AI correction: "${orig}" → "${repl}"`);
+                    addReplacement(orig, repl);
+                }
+            }
+        }
+
         setFullText(finalText);
         setSelectionRange({ start: finalText.length, end: finalText.length });
         setReviewData(null);

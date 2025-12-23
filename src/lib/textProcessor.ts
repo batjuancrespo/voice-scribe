@@ -30,46 +30,92 @@ function needsCapitalization(text: string): boolean {
     return ['.', '!', '?'].includes(lastChar);
 }
 
+// Helper for fuzzy matching (Levenshtein distance)
+function getLevenshteinDistance(a: string, b: string): number {
+    const tmp = [];
+    for (let i = 0; i <= a.length; i++) tmp[i] = [i];
+    for (let j = 0; j <= b.length; j++) tmp[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            tmp[i][j] = Math.min(
+                tmp[i - 1][j] + 1,
+                tmp[i][j - 1] + 1,
+                tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+            );
+        }
+    }
+    return tmp[a.length][b.length];
+}
+
 export function processTranscriptSegment(text: string, userReplacements: Record<string, string> = {}, previousText: string = ''): string {
     let processed = text;
 
-    // 0. Convert text numbers to digits FIRST (before any other processing)
-    processed = convertTextNumbersToDigits(processed);
+    // 0. Quick Acronym Booster (TC, RM, BI-RADS, etc.)
+    // Matches patterns like "tece", "erre eme", "birads"
+    const acronyms: Record<string, string> = {
+        'tece': 'TC',
+        'erre eme': 'RM',
+        'birads': 'BI-RADS',
+        'virads': 'VI-RADS',
+        'ecografía': 'eco',
+    };
 
-    // 1. Apply Radiology Dictionary (pre-loaded medical terms)
-    const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
-
-    // Use Spanish-friendly word boundaries to avoid partial matches
     const boundaryStart = '(?<![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
     const boundaryEnd = '(?![a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9])';
 
+    Object.entries(acronyms).forEach(([orig, repl]) => {
+        const regex = new RegExp(`${boundaryStart}${orig}${boundaryEnd}`, 'gi');
+        processed = processed.replace(regex, repl);
+    });
+
+    // 1. Convert text numbers to digits
+    processed = convertTextNumbersToDigits(processed);
+
+    // 2. Apply Radiology Dictionary
+    const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
     radiologyReplacements.forEach(([original, replacement]) => {
         const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`${boundaryStart}${escaped}${boundaryEnd}`, "gi");
         processed = processed.replace(regex, replacement);
     });
 
-    // 2. User Vocabulary Replacements (override radiology dictionary if needed)
+    // 3. User Vocabulary Replacements + Fuzzy Matching
     const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
+    const words = processed.split(/(\s+)/);
 
-    // DEBUG: Log user replacements
-    if (sortedReplacements.length > 0) {
-        console.log('[Dictionary] User replacements:', sortedReplacements);
-        console.log('[Dictionary] Processing text:', processed);
-    }
+    const processedWords = words.map(word => {
+        if (!word.trim()) return word;
 
-    sortedReplacements.forEach(([original, replacement]) => {
-        const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`${boundaryStart}${escaped}${boundaryEnd}`, "gi");
-        const beforeReplace = processed;
-        processed = processed.replace(regex, replacement);
+        const cleanWord = word.trim().toLowerCase().replace(/[.,:;?!]/g, '');
 
-        if (beforeReplace !== processed) {
-            console.log(`[Dictionary] Applied: "${original}" → "${replacement}"`);
-            console.log(`[Dictionary] Before: "${beforeReplace}"`);
-            console.log(`[Dictionary] After: "${processed}"`);
+        // Exact Match
+        for (const [original, replacement] of sortedReplacements) {
+            if (cleanWord === original.toLowerCase()) {
+                return word.toLowerCase().replace(cleanWord, replacement);
+            }
         }
+
+        // Fuzzy Match (only for longer words > 4 chars)
+        if (cleanWord.length > 4) {
+            for (const [original, replacement] of sortedReplacements) {
+                // If the error term is also long enough
+                if (original.length > 4) {
+                    const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());
+                    // Threshold: 20% of length or max 2
+                    const threshold = Math.min(2, Math.floor(original.length * 0.25));
+
+                    if (distance <= threshold && distance > 0) {
+                        console.log(`[Fuzzy Match] "${cleanWord}" matches learned error "${original}". Correcting to "${replacement}"`);
+                        return word.toLowerCase().replace(cleanWord, replacement);
+                    }
+                }
+            }
+        }
+
+        return word;
     });
+
+    processed = processedWords.join('');
 
     // 3. Process medical measurement patterns
     processed = processMedicalMeasurements(processed);

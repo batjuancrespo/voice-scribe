@@ -17,7 +17,7 @@ export interface TranscriptionEvent {
     confidence?: number;
 }
 
-export const useTranscription = () => {
+export const useTranscription = (userReplacements: Record<string, string> = {}) => {
     const [isListening, setIsListening] = useState(false);
     const [interimResult, setInterimResult] = useState('');
     const [lastEvent, setLastEvent] = useState<TranscriptionEvent | null>(null);
@@ -26,10 +26,32 @@ export const useTranscription = () => {
     const recognitionRef = useRef<any>(null);
     const shouldBeListeningRef = useRef(false);
 
+    // Rebuild Grammar List when replacements change
+    useEffect(() => {
+        if (!recognitionRef.current) return;
+
+        const windowWithSpeech = window as unknown as WindowsWithSpeech;
+        const SpeechGrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
+
+        if (SpeechGrammarList) {
+            try {
+                const dictionaryTerms = Object.keys(userReplacements);
+                const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
+                const grammarList = new SpeechGrammarList();
+                const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
+                grammarList.addFromString(grammar, 1);
+                recognitionRef.current.grammars = grammarList;
+                console.log('[Grammar] Injected hints:', dictionaryTerms.length, 'custom terms');
+            } catch (e) {
+                console.warn('Failed to update grammar:', e);
+            }
+        }
+    }, [userReplacements]);
+
     useEffect(() => {
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
         const SpeechRecognition = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-        const SpeechGrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
+        const SpeechGrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList; // Keep this for initial check
 
         if (!SpeechRecognition) {
             setError('Web Speech API no está soportado en este navegador. Usa Google Chrome para mejor rendimiento.');
@@ -44,15 +66,17 @@ export const useTranscription = () => {
         recognition.lang = 'es-ES'; // Spanish (Spain) - best for medical terminology
         recognition.maxAlternatives = 3; // Get multiple alternatives to choose best one
 
-        // Add medical vocabulary hints (if supported)
+        // Add medical vocabulary hints (if supported) - Initial setup, will be updated by the other useEffect
         if (SpeechGrammarList) {
             try {
+                const dictionaryTerms = Object.keys(userReplacements);
+                const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
                 const grammarList = new SpeechGrammarList();
-                const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${RADIOLOGY_HINTS.join(' | ')};`;
+                const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
                 grammarList.addFromString(grammar, 1);
                 recognition.grammars = grammarList;
             } catch (e) {
-                console.warn('Speech grammar not supported, continuing without hints');
+                console.warn('Speech grammar not supported or failed to initialize, continuing without hints');
             }
         }
 
