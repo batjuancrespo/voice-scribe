@@ -24,6 +24,7 @@ export const useTranscription = () => {
     const [error, setError] = useState<string | null>(null);
 
     const recognitionRef = useRef<any>(null);
+    const shouldBeListeningRef = useRef(false);
 
     useEffect(() => {
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
@@ -61,20 +62,43 @@ export const useTranscription = () => {
         };
 
         recognition.onend = () => {
-            setIsListening(false);
+            // KEEP-ALIVE LOGIC: If the user intended to be listening but the browser stopped, restart.
+            if (shouldBeListeningRef.current && recognitionRef.current) {
+                try {
+                    recognitionRef.current.start();
+                } catch (e) {
+                    console.error('Failed to restart recognition:', e);
+                    setIsListening(false);
+                }
+            } else {
+                setIsListening(false);
+            }
         };
 
         recognition.onerror = (event: any) => {
             if (event.error === 'no-speech') {
-                setError('No se detectó voz. Asegúrate de que el micrófono esté funcionando.');
+                // If it's just silence, we don't treat it as a hard error that stops the ref
+                // The onend event will trigger and restart if shouldBeListeningRef is true
+                console.log('Silence detected, keep-alive will restart.');
             } else if (event.error === 'audio-capture') {
                 setError('No se pudo acceder al micrófono. Verifica los permisos.');
+                shouldBeListeningRef.current = false;
             } else if (event.error === 'not-allowed') {
                 setError('Permisos de micrófono denegados. Ve a configuración del navegador.');
+                shouldBeListeningRef.current = false;
+            } else if (event.error === 'network') {
+                setError('Error de red. Verifica tu conexión.');
+                shouldBeListeningRef.current = false;
+            } else if (event.error === 'aborted') {
+                // Usually triggered by recognition.stop()
             } else {
                 setError(`Error: ${event.error}`);
+                shouldBeListeningRef.current = false;
             }
-            setIsListening(false);
+
+            if (!shouldBeListeningRef.current) {
+                setIsListening(false);
+            }
         };
 
         recognition.onresult = (event: any) => {
@@ -124,21 +148,24 @@ export const useTranscription = () => {
     const startListening = useCallback(() => {
         if (recognitionRef.current && !isListening) {
             try {
+                shouldBeListeningRef.current = true;
                 recognitionRef.current.start();
                 setIsListening(true);
             } catch (e) {
                 console.error(e);
+                shouldBeListeningRef.current = false;
                 setError('Error al iniciar el reconocimiento de voz');
             }
         }
     }, [isListening]);
 
     const stopListening = useCallback(() => {
-        if (recognitionRef.current && isListening) {
+        if (recognitionRef.current) {
+            shouldBeListeningRef.current = false;
             recognitionRef.current.stop();
             setIsListening(false);
         }
-    }, [isListening]);
+    }, []);
 
     return {
         isListening,
