@@ -130,19 +130,52 @@ export const useTranscription = (userReplacements: Record<string, string> = {}) 
             let interim = '';
             let maxConfidence = 0;
 
+            // List of medical terms to look for in alternatives
+            const medicalTermsSet = new Set([
+                ...RADIOLOGY_HINTS.map(t => t.toLowerCase()),
+                ...Object.keys(userReplacements).map(t => t.toLowerCase())
+            ]);
+
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
 
                 if (result.isFinal) {
-                    // Get best alternative (highest confidence)
+                    // Default to the first alternative (highest confidence)
                     let bestTranscript = result[0].transcript;
                     let bestConfidence = result[0].confidence || 0;
+                    let foundMedicalMatch = false;
 
-                    // Check alternatives if available
-                    for (let j = 1; j < Math.min(result.length, 3); j++) {
-                        if (result[j].confidence > bestConfidence) {
-                            bestTranscript = result[j].transcript;
-                            bestConfidence = result[j].confidence;
+                    // Check if the primary alternative itself is a medical term
+                    const primaryWords = bestTranscript.toLowerCase().split(/\s+/);
+                    if (primaryWords.some((w: string) => medicalTermsSet.has(w))) {
+                        foundMedicalMatch = true;
+                    }
+
+                    // Scan alternatives for medical terms if the primary isn't one
+                    if (!foundMedicalMatch) {
+                        for (let j = 1; j < Math.min(result.length, 3); j++) {
+                            const altTranscript = result[j].transcript;
+                            const altWords = altTranscript.toLowerCase().split(/\s+/);
+
+                            // If this alternative has a medical word and enough confidence (> 0.5)
+                            if (altWords.some((w: string) => medicalTermsSet.has(w)) && result[j].confidence > 0.5) {
+                                console.log(`[Smart Selection] Prioritizing medical alternative: "${altTranscript}" over "${bestTranscript}"`);
+                                bestTranscript = altTranscript;
+                                bestConfidence = result[j].confidence;
+                                foundMedicalMatch = true;
+                                break; // Take the first medical alternative found
+                            }
+                        }
+                    }
+
+                    // Normal selection logic if no medical match found (already handled by defaulting to result[0])
+                    // But we still apply the "highest confidence" logic for the remaining alternatives if we didn't pick a medical one
+                    if (!foundMedicalMatch) {
+                        for (let j = 1; j < Math.min(result.length, 3); j++) {
+                            if (result[j].confidence > bestConfidence) {
+                                bestTranscript = result[j].transcript;
+                                bestConfidence = result[j].confidence;
+                            }
                         }
                     }
 
