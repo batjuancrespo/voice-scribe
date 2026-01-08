@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Mic, Play, SkipForward, Trophy, TrendingUp, Target, CheckCircle2 } from 'lucide-react';
+import { X, Mic, Play, SkipForward, Trophy, TrendingUp, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { useTrainingSession, TrainingTerm } from '@/hooks/useTrainingSession';
+import { useLearningStats } from '@/hooks/useLearningStats';
+import { RADIOLOGY_HINTS } from '@/lib/radiologyDictionary';
 
 interface TrainingModeProps {
     isOpen: boolean;
@@ -37,6 +39,8 @@ export function TrainingMode({
     } = useTrainingSession();
 
     const [lastTranscript, setLastTranscript] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const { getProblematicTerms } = useLearningStats();
 
     // Monitor transcript changes
     useEffect(() => {
@@ -48,8 +52,34 @@ export function TrainingMode({
         }
     }, [transcript, isActive, isComplete, lastTranscript, recordResult, onStopListening]);
 
-    const handleStart = () => {
-        startSession();
+    const handleStart = async () => {
+        setIsGenerating(true);
+        try {
+            // 1. Get terms you struggle with (Top 5)
+            const problematic = await getProblematicTerms(5);
+            const problematicTerms: TrainingTerm[] = problematic.map((p, i) => ({
+                id: `prob-${i}`,
+                term: p.term,
+                category: 'descriptor' // Default for learned terms
+            }));
+
+            // 2. Get random terms from Radiology Dictionary (15 terms)
+            const shuffledHints = [...RADIOLOGY_HINTS].sort(() => 0.5 - Math.random());
+            const randomTerms: TrainingTerm[] = shuffledHints.slice(0, 15).map((term, i) => ({
+                id: `rnd-${i}`,
+                term: term,
+                category: 'anatomy' // Default for dictionary terms
+            }));
+
+            // 3. Combine
+            const curriculum = [...problematicTerms, ...randomTerms];
+            startSession(curriculum);
+        } catch (e) {
+            console.error('Error generating curriculum:', e);
+            startSession(); // Fallback to default
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const handleNext = () => {
@@ -119,10 +149,20 @@ export function TrainingMode({
                             </p>
                             <button
                                 onClick={handleStart}
-                                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 shadow-lg flex items-center gap-2 mx-auto"
+                                disabled={isGenerating}
+                                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 shadow-lg flex items-center gap-2 mx-auto disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <Play className="w-5 h-5" />
-                                Iniciar Entrenamiento
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Generando Sesión...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-5 h-5" />
+                                        Iniciar Entrenamiento
+                                    </>
+                                )}
                             </button>
                         </div>
                     ) : isComplete ? (

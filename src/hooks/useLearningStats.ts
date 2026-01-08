@@ -129,9 +129,33 @@ export function useLearningStats() {
         }));
     }, []);
 
+    /**
+     * Get problematic terms (high error frequency, not yet auto-learned)
+     */
+    const getProblematicTerms = useCallback(async (limit: number = 5) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return [];
+
+        const { data, error } = await supabase
+            .from('learning_stats')
+            .select('correction, frequency')
+            .eq('user_id', user.id)
+            .eq('auto_learned', false)
+            .order('frequency', { ascending: false })
+            .limit(limit);
+
+        if (error || !data) return [];
+
+        return data.map(item => ({
+            term: item.correction,
+            count: item.frequency
+        }));
+    }, []);
+
     return {
         getWeeklyProgress,
         getGlobalStats,
-        getMostUsedTerms
+        getMostUsedTerms,
+        getProblematicTerms
     };
 }
