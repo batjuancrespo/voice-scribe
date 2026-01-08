@@ -428,12 +428,28 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "sigma": "sigma",
     "ampolla rectal": "ampolla rectal",
     "espacio presacro": "espacio presacro",
+
+    // Puntuación explícita (para reforzar el reconocimiento)
+    "punto": ".",
+    "punto y seguido": ". ",
+    "punto y aparte": ".\n",
+    "coma": ",",
+    "dos puntos": ":",
+    "punto y coma": ";",
+    "nuevo párrafo": "\n",
+    "nueva línea": "\n",
+    "abrir paréntesis": "(",
+    "cerrar paréntesis": ")",
+    "comillas": '"',
 };
 
 // Medical hints for Web Speech API - palabras que usa frecuentemente
 export const RADIOLOGY_HINTS = [
     // Anatomía básica
     "tórax", "abdomen", "pelvis", "cráneo", "columna",
+
+    // Puntuación (CRÍTICO: reforzar para evitar alucinaciones como BI-RADS)
+    "punto", "coma", "dos puntos", "nuevo párrafo", "nueva línea",
 
     // Hallazgos
     "nódulo", "masa", "lesión", "derrame", "neumotórax",
