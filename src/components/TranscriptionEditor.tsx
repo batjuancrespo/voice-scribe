@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { useAudioQuality } from '@/hooks/useAudioQuality';
+import { useAutomaticContext } from '@/hooks/useAutomaticContext';
 import { useLearningStats } from '@/hooks/useLearningStats';
 import { AiSettingsModal } from './AiSettingsModal';
 import { CorrectionReviewModal } from './CorrectionReviewModal';
@@ -22,6 +23,9 @@ import { computeDiff } from '@/lib/diffUtils';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
+    const [fullText, setFullText] = useState('');
+    const { activeContext } = useAutomaticContext(fullText);
+
     const { replacements, addReplacement } = useVocabulary();
     const { getMostUsedTerms } = useLearningStats();
     const [frequentTerms, setFrequentTerms] = useState<string[]>([]);
@@ -32,6 +36,13 @@ export function TranscriptionEditor() {
         });
     }, [getMostUsedTerms]);
 
+    // Combine frequent terms + context boosted terms
+    const [boostedTerms, setBoostedTerms] = useState<string[]>([]);
+    useEffect(() => {
+        const contextTerms = activeContext?.terms || [];
+        setBoostedTerms([...frequentTerms, ...contextTerms]);
+    }, [activeContext, frequentTerms]);
+
     const {
         isListening,
         interimResult,
@@ -39,11 +50,12 @@ export function TranscriptionEditor() {
         error,
         startListening,
         stopListening,
-    } = useTranscription(replacements, frequentTerms);
+    } = useTranscription(replacements, boostedTerms);
 
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
     const { quality, snr, recommendation } = useAudioQuality(isListening);
+
 
     const [showSettings, setShowSettings] = useState(false);
     const [showAiSettings, setShowAiSettings] = useState(false);
@@ -58,7 +70,7 @@ export function TranscriptionEditor() {
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [lastCopiedText, setLastCopiedText] = useState('');
 
-    const [fullText, setFullText] = useState('');
+    // fullText state moved up
     const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
 
     // Refs to access latest state inside valid event effect without re-triggering
@@ -470,6 +482,12 @@ export function TranscriptionEditor() {
                                 <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
                                     {isListening ? '● GRABANDO' : 'LISTO'}
                                 </div>
+                                {activeContext && (
+                                    <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-semibold border border-purple-200 dark:border-purple-800 animate-in fade-in slide-in-from-right-4 duration-500">
+                                        <Wand2 className="w-3 h-3" />
+                                        <span>{activeContext.description}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -678,9 +696,9 @@ export function TranscriptionEditor() {
                                 {isListening && !isMuted && (
                                     <div className="flex items-center justify-center gap-4 text-xs mt-2">
                                         <div className={`px-2 py-1 rounded-full flex items-center gap-1 border ${quality === 'excellent' ? 'bg-green-100 text-green-700 border-green-200' :
-                                                quality === 'good' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                                    quality === 'fair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                                        'bg-red-100 text-red-700 border-red-200'
+                                            quality === 'good' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                                                quality === 'fair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                    'bg-red-100 text-red-700 border-red-200'
                                             }`}>
                                             <span className="font-bold">SNR: {snr}dB</span>
                                             <span>
