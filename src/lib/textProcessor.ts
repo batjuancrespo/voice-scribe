@@ -105,10 +105,21 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     // Then process word-level replacements with fuzzy matching
     const words = processed.split(/(\s+)/);
 
+    // Protected words (Punctuation keys)
+    const protectedWords = new Set(Object.keys(PUNCTUATION_MAP).map(k => k.trim()));
+    protectedWords.add('punto');
+    protectedWords.add('coma');
+    protectedWords.add('dos puntos');
+
     const processedWords = words.map(word => {
         if (!word.trim()) return word;
 
         const cleanWord = word.trim().toLowerCase().replace(/[.,:;?!]/g, '');
+
+        // SKIP replacements for protected punctuation words
+        if (protectedWords.has(cleanWord)) {
+            return word;
+        }
 
         // Exact Match
         for (const [original, replacement] of wordReplacements) {
@@ -117,14 +128,14 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
             }
         }
 
-        // Fuzzy Match (only for longer words > 4 chars)
-        if (cleanWord.length > 4) {
+        // Fuzzy Match (only for longer words > 5 chars to avoid collisions like 'punto')
+        if (cleanWord.length > 5) {
             for (const [original, replacement] of wordReplacements) {
                 // If the error term is also long enough
-                if (original.length > 4) {
+                if (original.length > 5) {
                     const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());
-                    // Threshold: 20% of length or max 2
-                    const threshold = Math.min(2, Math.floor(original.length * 0.25));
+                    // Stricter Threshold: max 1 error for 6-letter words, 2 for longer
+                    const threshold = Math.min(2, Math.floor(original.length * 0.2));
 
                     if (distance <= threshold && distance > 0) {
                         console.log(`[Fuzzy Match] "${cleanWord}" matches learned error "${original}". Correcting to "${replacement}"`);
