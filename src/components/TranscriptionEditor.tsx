@@ -13,6 +13,7 @@ import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { useAudioQuality } from '@/hooks/useAudioQuality';
 import { useAutomaticContext } from '@/hooks/useAutomaticContext';
+import { useMedicalLogic } from '@/hooks/useMedicalLogic';
 import { useLearningStats } from '@/hooks/useLearningStats';
 import { AiSettingsModal } from './AiSettingsModal';
 import { CorrectionReviewModal } from './CorrectionReviewModal';
@@ -59,7 +60,7 @@ export function TranscriptionEditor() {
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
     const { quality, snr, recommendation } = useAudioQuality(isListening);
-
+    const { issues: medicalIssues } = useMedicalLogic(fullText);
 
     const [showSettings, setShowSettings] = useState(false);
     const [showAiSettings, setShowAiSettings] = useState(false);
@@ -494,6 +495,30 @@ export function TranscriptionEditor() {
                                                 <span>{ctx.description}</span>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                                {medicalIssues.length > 0 && (
+                                    <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-800 animate-in fade-in slide-in-from-right-4 duration-500 cursor-help group relative">
+                                        <AlertTriangle className="w-3 h-3" />
+                                        <span>{medicalIssues.length} alerta{medicalIssues.length !== 1 ? 's' : ''}</span>
+
+                                        {/* Tooltip */}
+                                        <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-3 hidden group-hover:block z-50">
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Incoherencias detectadas</h4>
+                                            <div className="space-y-2">
+                                                {medicalIssues.map((issue) => (
+                                                    <div key={issue.id} className="text-xs">
+                                                        <p className="font-medium text-amber-600 dark:text-amber-400">{issue.text}</p>
+                                                        <p className="text-gray-600 dark:text-gray-400">{issue.message}</p>
+                                                        {issue.suggestion && (
+                                                            <p className="mt-1 text-green-600 dark:text-green-400 font-mono bg-green-50 dark:bg-green-900/20 p-1 rounded">
+                                                                Sugerencia: {issue.suggestion}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
