@@ -142,12 +142,15 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
             return word;
         }
 
-        // Quality 7.1: If the word is ALREADY a valid medical term or plural of one, SKIP FUZZY
+        // Quality 7.1 & 7.2: If the word is ALREADY a valid medical term or plural of one, SKIP FUZZY
         // This prevents "densidad" -> "isodensidad" or "normales" -> "normal"
         const isPlural = cleanWord.endsWith('s') && cleanWord.length > 4;
         const singularWord = isPlural ? cleanWord.slice(0, -1) : cleanWord;
 
-        if (validMedicalTerms.has(cleanWord) || validMedicalTerms.has(singularWord)) {
+        // Quality 7.2: Gender Neutral Validation (o/a)
+        const masculineVersion = singularWord.endsWith('a') ? singularWord.slice(0, -1) + 'o' : singularWord;
+
+        if (validMedicalTerms.has(cleanWord) || validMedicalTerms.has(singularWord) || validMedicalTerms.has(masculineVersion)) {
             return word;
         }
 
