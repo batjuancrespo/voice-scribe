@@ -69,6 +69,66 @@ export function TranscriptionEditor() {
     const [showTraining, setShowTraining] = useState(false);
     const [editSuggestion, setEditSuggestion] = useState<{ original: string, replacement: string } | null>(null);
     const isAutoChangeRef = useRef(false);
+    const sentinelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSentinelProcessedRef = useRef<string>("");
+
+    const [aiKey, setAiKey] = useState<string | null>(null);
+    const [aiModel, setAiModel] = useState('gemini-1.5-flash');
+
+    // Sync AI Settings from localStorage
+    useEffect(() => {
+        setAiKey(localStorage.getItem('gemini_api_key'));
+        setAiModel(localStorage.getItem('gemini_model') || 'gemini-1.5-flash');
+    }, [showAiSettings]);
+
+    // Sentinel Background Correction (Quality 7.0)
+    useEffect(() => {
+        const trimmed = fullText.trim();
+        // Trigger when a sentence ends with punctuation or newline
+        if (/[.\n]$/.test(trimmed) && trimmed !== lastSentinelProcessedRef.current && !isListening) {
+            if (sentinelTimeoutRef.current) clearTimeout(sentinelTimeoutRef.current);
+
+            sentinelTimeoutRef.current = setTimeout(async () => {
+                // Find last sentence segment (limit to last 200 chars to keep it fast/cheap)
+                const lastSegment = trimmed.slice(-200);
+                const sentences = lastSegment.split(/(?<=[.\n])/);
+                const lastSentence = sentences[sentences.length - 1].trim();
+
+                if (lastSentence.length < 15 || lastSentence.split(' ').length < 3) return;
+
+                console.log("[Sentinel] Background refining:", lastSentence);
+                try {
+                    const response = await fetch('/api/ai/correct', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: lastSentence,
+                            apiKey: aiKey,
+                            model: aiModel,
+                            mode: 'sentinel'
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.correctedText && data.correctedText.trim() !== lastSentence && data.correctedText.length > 5) {
+                        console.log("[Sentinel] Applied silent correction:", data.correctedText);
+                        setFullText(prev => {
+                            // Only replace if the original is still there to avoid race conditions
+                            if (prev.includes(lastSentence)) {
+                                const newText = prev.replace(lastSentence, data.correctedText.trim());
+                                lastSentinelProcessedRef.current = newText.trim();
+                                return newText;
+                            }
+                            return prev;
+                        });
+                    } else {
+                        lastSentinelProcessedRef.current = trimmed;
+                    }
+                } catch (e) {
+                    console.error("Sentinel error:", e);
+                }
+            }, 3000); // 3 second delay
+        }
+    }, [fullText, aiKey, aiModel, isListening]);
     const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [reviewData, setReviewData] = useState<{ original: string; corrected: string; confidence?: number } | null>(null);

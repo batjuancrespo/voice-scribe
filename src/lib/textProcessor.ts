@@ -2,6 +2,7 @@ import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
 import { convertTextNumbersToDigits, processMedicalMeasurements } from './numberConverter';
 import { correctSilentErrors } from './silentErrorDetector';
 import { cleanFillerWords } from './fillerCleaner';
+import { getSpanishPhoneticCode } from './phoneticMatcher';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
     " punto y aparte": ".\n",
@@ -116,6 +117,14 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     protectedWords.add('coma');
     protectedWords.add('dos puntos');
 
+    // Quality 7.0: Dynamic Medical Vocabulary for Fuzzy Matching
+    // Filter RADIOLOGY_DICTIONARY for single words > 5 chars to avoid noise
+    const medicalWordReplacements = Object.entries(RADIOLOGY_DICTIONARY)
+        .filter(([orig]) => !orig.includes(' ') && orig.length > 5);
+
+    // Combine user dictionary and medical dictionary
+    const fuzzyTargets = [...wordReplacements, ...medicalWordReplacements];
+
     const processedWords = words.map(word => {
         if (!word.trim()) return word;
 
@@ -126,25 +135,41 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
             return word;
         }
 
-        // Exact Match
+        // Exact Match (User dictates something exactly as in dictionary)
+        // This is already done for RADIOLOGY_DICTIONARY at the start of the function for phrases and words,
+        // but we keep user exact matches here as they are per-token.
         for (const [original, replacement] of wordReplacements) {
             if (cleanWord === original.toLowerCase()) {
                 return word.toLowerCase().replace(cleanWord, replacement);
             }
         }
 
-        // Fuzzy Match (only for longer words > 5 chars to avoid collisions like 'punto')
+        // Fuzzy Match (Quality 7.0: Expanded to all medical terms)
         if (cleanWord.length > 5) {
-            for (const [original, replacement] of wordReplacements) {
-                // If the error term is also long enough
+            for (const [original, replacement] of fuzzyTargets) {
+                // If the target term is also long enough
                 if (original.length > 5) {
                     const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());
-                    // Stricter Threshold: max 1 error for 6-letter words, 2 for longer
-                    const threshold = Math.min(2, Math.floor(original.length * 0.2));
+
+                    // Adaptive Threshold: 
+                    // - 2 errors for words up to 10 chars
+                    // - 3 errors for longer medical terms (e.g. "colecisto-pancreatografía")
+                    const threshold = original.length > 10 ? 3 : 2;
 
                     if (distance <= threshold && distance > 0) {
-                        console.log(`[Fuzzy Match] "${cleanWord}" matches learned error "${original}". Correcting to "${replacement}"`);
-                        return word.toLowerCase().replace(cleanWord, replacement);
+                        console.log(`[Fuzzy Total Match] "${cleanWord}" matches "${original}". Correcting to "${replacement}"`);
+                        // Preserva capitalization if first letter was upper
+                        const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
+                        const result = word.toLowerCase().replace(cleanWord, replacement);
+                        return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
+                    }
+
+                    // SECONDARY: Phonetic Match (if sounds identical but spelling is very different)
+                    if (getSpanishPhoneticCode(cleanWord) === getSpanishPhoneticCode(original)) {
+                        console.log(`[Phonetic Match] "${cleanWord}" sounds like "${original}". Correcting to "${replacement}"`);
+                        const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
+                        const result = word.toLowerCase().replace(cleanWord, replacement);
+                        return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
                     }
                 }
             }

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        let { text, apiKey, userDictionary, model = 'gemini-1.5-flash' } = body;
+        let { text, apiKey, userDictionary, model = 'gemini-1.5-flash', mode = 'standard' } = body;
 
         // Fallback to server-side API Key if not provided by client
         if (!apiKey) {
@@ -22,14 +22,32 @@ export async function POST(req: Request) {
         const genAI = new GoogleGenerativeAI(apiKey);
         const aiModel = genAI.getGenerativeModel({ model: model });
 
-        // Construct the system prompt with user vocabulary context
-        let vocabularyContext = "";
-        if (userDictionary && Object.keys(userDictionary).length > 0) {
-            const dictionaryString = Object.entries(userDictionary)
-                .map(([error, correction]) => `"${error}" -> "${correction}"`)
-                .join("\n");
+        // Construct the system prompt
+        let prompt = "";
 
-            vocabularyContext = `
+        if (mode === 'sentinel') {
+            prompt = `
+ROLE: Highly Precise Medical Grammar Sentinel.
+
+TASK: Refine the grammar of this short portion of a medical report.
+STRICT RULES:
+1. ONLY fix obvious grammar, gender/number agreement, or spelling errors.
+2. DO NOT change ANY medical terms or clinical meaning.
+3. DO NOT add or remove information.
+4. If the text is already correct, return it EXACTLY as is.
+5. Standardize "3 por 4 cm" to "3x4 cm" and similar measurement formats.
+
+INPUT: "${text}"
+OUTPUT: `;
+        } else {
+            // Standard full correction prompt
+            let vocabularyContext = "";
+            if (userDictionary && Object.keys(userDictionary).length > 0) {
+                const dictionaryString = Object.entries(userDictionary)
+                    .map(([error, correction]) => `"${error}" -> "${correction}"`)
+                    .join("\n");
+
+                vocabularyContext = `
 IMPORTANT - USER SPECIFIC CORRECTIONS:
 The user frequently encounters specific transcription errors. 
 Here is the list of known errors and their correct terms:
@@ -40,9 +58,9 @@ INSTRUCTION FOR VOCABULARY:
 2. **PHONETIC MATCHING**: If you see a term that SOUNDS PHONETICALLY SIMILAR to a "known error" (e.g. "ameromatosis" vs "ateromatosis") or looks like a typo of it, apply the correction.
 3. Use the medical context to confirm if the correction makes sense.
 `;
-        }
+            }
 
-        const prompt = `
+            prompt = `
 ROLE: Expert Radiologist & Medical Editor.
 
 TASK: 
@@ -78,6 +96,7 @@ INPUT TEXT TO CORRECT:
 
 CORRECTED OUTPUT:
 `;
+        }
 
         const result = await aiModel.generateContent(prompt);
         const response = await result.response;
