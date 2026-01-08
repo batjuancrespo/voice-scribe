@@ -1,6 +1,7 @@
 import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
 import { convertTextNumbersToDigits, processMedicalMeasurements } from './numberConverter';
 import { correctSilentErrors } from './silentErrorDetector';
+import { cleanFillerWords } from './fillerCleaner';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
     " punto y aparte": ".\n",
@@ -50,6 +51,10 @@ function getLevenshteinDistance(a: string, b: string): number {
 
 export function processTranscriptSegment(text: string, userReplacements: Record<string, string> = {}, previousText: string = ''): string {
     let processed = text;
+
+    // 0. Filler Word Removal (Muletillas)
+    const { cleanedText } = cleanFillerWords(processed);
+    processed = cleanedText;
 
     // 0. Silent Error Detection and Correction
     // Fix common spacing/compound errors FIRST (e.g., "hipo ecogénico" -> "hipoecogénico")

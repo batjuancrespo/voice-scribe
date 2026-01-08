@@ -169,7 +169,7 @@ export function TranscriptionEditor() {
         window.location.reload();
     };
 
-    // Manual Edit Detection for Auto-Learning
+    // Manual Edit Detection for Auto-Learning (Deep N-Grams)
     const handleManualChange = (newValue: string) => {
         const oldValue = fullText;
         setFullText(newValue);
@@ -178,16 +178,21 @@ export function TranscriptionEditor() {
 
         // Compare if it's a small correction
         const diff = computeDiff(oldValue, newValue);
-        const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 2);
-        const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 1);
 
-        if (removed.length === 1 && added.length === 1) {
-            // Check if it's a word-for-word replacement and not a common word
-            const orig = removed[0];
-            const repl = added[0];
+        // Extract sequences of removed/added words
+        // We look for contiguous blocks of changes
+        const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 0);
+        const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 0);
 
-            // Only suggest if they are different and not already in dictionary
-            if (orig !== repl && !replacements[orig.toLowerCase()]) {
+        // N-Gram Detection Logic:
+        // Case A: 1-to-1 word (handled before)
+        // Case B: Multi-word phrase replaced by another phrase (Sprint 4)
+        if (removed.length > 0 && added.length > 0 && removed.length <= 3 && added.length <= 3) {
+            const orig = removed.join(' ').toLowerCase();
+            const repl = added.join(' ');
+
+            // Only suggest if different and not already in dictionary
+            if (orig !== repl.toLowerCase() && !replacements[orig]) {
                 setEditSuggestion({ original: orig, replacement: repl });
             }
         }
@@ -248,21 +253,16 @@ export function TranscriptionEditor() {
         // Implicit Learning: Find differences and save them automatically if they are clear corrections
         if (originalText && finalText !== originalText) {
             const diff = computeDiff(originalText, finalText);
-            const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 3);
-            const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 3);
+            const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 0);
+            const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 0);
 
-            // If it's a simple 1-to-1 word replacement that looks like a technical correction
-            if (removed.length === 1 && added.length === 1 && diff.length < 15) {
-                const orig = removed[0];
-                const repl = added[0];
+            // N-Gram Learning (Sprint 4): Capture phrase corrections
+            if (removed.length > 0 && added.length > 0 && removed.length <= 3 && added.length <= 3) {
+                const orig = removed.join(' ').toLowerCase();
+                const repl = added.join(' ');
 
-                // Case-insensitive check to avoid duplicates like "Eco" -> "Eco"
-                const exists = Object.entries(replacements).some(
-                    ([err, corr]) => err.toLowerCase() === orig.toLowerCase() && corr.toLowerCase() === repl.toLowerCase()
-                );
-
-                if (orig.toLowerCase() !== repl.toLowerCase() && !exists) {
-                    console.log(`[Implicit Learning] Saving AI correction: "${orig}" → "${repl}"`);
+                if (orig !== repl.toLowerCase()) {
+                    console.log(`[Auto-Learning Phrase] From AI Review: "${orig}" -> "${repl}"`);
                     addReplacement(orig, repl);
                 }
             }
