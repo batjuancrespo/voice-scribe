@@ -11,56 +11,55 @@ interface ProposedContext {
 }
 
 export const useAutomaticContext = (transcript: string) => {
-    const [activeContext, setActiveContext] = useState<ProposedContext | null>(null);
+    const [activeContexts, setActiveContexts] = useState<ProposedContext[]>([]);
     const lastAnalyzedIndex = useRef(0);
     const DEBOUNCE_MS = 1000; // Analyze every 1 second of silence or typing
 
     const analyzeContext = useCallback((text: string) => {
         const normalizedText = text.toLowerCase();
-        const scores: Record<string, number> = {};
+
+        const newContexts: ProposedContext[] = [];
 
         // Analyze matches for each context
         Object.values(CONTEXT_DEFINITIONS).forEach(ctx => {
             let score = 0;
             ctx.keywords.forEach(keyword => {
-                // Simple regex to count occurrences
+                // Count occurrences
                 const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
                 const matches = normalizedText.match(regex);
                 if (matches) {
                     score += matches.length;
                 }
             });
-            scores[ctx.id] = score;
-        });
 
-        // Find winner
-        let maxScore = 0;
-        let winnerId = null;
-
-        Object.entries(scores).forEach(([id, score]) => {
-            if (score > maxScore) {
-                maxScore = score;
-                winnerId = id;
-            }
-        });
-
-        // Threshold logic (needs at least 2 keyword matches to switch context?)
-        // Or maybe just 1 strong one. Let's say 2 to be safe or 1 very specific.
-        if (winnerId && maxScore >= 1) {
-            const def = CONTEXT_DEFINITIONS[winnerId];
-
-            // Only update if it's different or confidence increased
-            if (activeContext?.id !== winnerId) {
-                console.log(`[AutoContext] Switching to: ${def.name} (Score: ${maxScore})`);
-                setActiveContext({
-                    id: def.id,
-                    description: def.name,
-                    confidence: Math.min(1, maxScore / 5), // Normalize 0-1 roughly
-                    terms: def.boostTerms
+            // Threshold: simple scoring. 
+            // If score >= 1, we consider it active.
+            if (score >= 1) {
+                newContexts.push({
+                    id: ctx.id,
+                    description: ctx.name,
+                    confidence: Math.min(1, score / 3),
+                    terms: ctx.boostTerms
                 });
             }
-        }
-    }, [activeContext]);
+        });
+
+        // Update state if different
+        // We sort by ID to ensure stability comparison
+        newContexts.sort((a, b) => a.id.localeCompare(b.id));
+
+        setActiveContexts(prev => {
+            const prevIds = prev.map(c => c.id).join(',');
+            const newIds = newContexts.map(c => c.id).join(',');
+
+            if (prevIds !== newIds) {
+                console.log(`[AutoContext] Active Contexts: ${newIds || 'None'}`);
+                return newContexts;
+            }
+            return prev;
+        });
+
+    }, []);
 
     // Effect to trigger analysis
     useEffect(() => {
@@ -77,10 +76,10 @@ export const useAutomaticContext = (transcript: string) => {
     }, [transcript, analyzeContext]);
 
     // Force manual reset
-    const resetContext = () => setActiveContext(null);
+    const resetContext = () => setActiveContexts([]);
 
     return {
-        activeContext,
+        activeContexts,
         resetContext
     };
 };

@@ -103,5 +103,57 @@ export const CONTEXT_DEFINITIONS: Record<string, ContextDefinition> = {
             'labrum', 'cartílago articular', 'condropatía', 'artrosis', 'osteofitos',
             'esclerosis subcondral', 'geoda', 'edema óseo', 'metástasis ósea'
         ]
+    },
+    // === MODALIDADES (FÍSICA) ===
+    tc: {
+        id: 'tc',
+        name: 'TC / Scanner',
+        keywords: [
+            'tomografía', 'tac', 'scanner', 'densidad', 'atenuación', 'hounsfield',
+            'unidades hounsfield', 'fase arterial', 'fase venosa', 'fase portal',
+            'fase tardía', 'fase de eliminación', 'contraste yodado', 'hipodenso',
+            'hiperdenso', 'isodenso', 'captación', 'realce'
+        ],
+        boostTerms: [
+            'hipodensidad', 'hiperdensidad', 'isodensidad', 'heterogéneo', 'homogéneo',
+            'unidades Hounsfield', 'ventana de pulmón', 'ventana de hueso', 'ventana de mediastino',
+            'fase corticomedular', 'fase nefrográfica', 'fase excretora', 'lavado', 'wash-out',
+            'artefacto de endurecimiento', 'artefacto por movimiento', 'reconstrucción MIP',
+            'reconstrucción MinIP', 'volumen rendering', 'rayos X', 'radiación ionizante'
+        ]
+    },
+    rm: {
+        id: 'rm',
+        name: 'Resonancia Magnética',
+        keywords: [
+            'resonancia', 'rm', 'rmi', 'señal', 'intensidad', 't1', 't2', 'flair',
+            'stir', 'difusión', 'mapa adc', 'gadolinio', 'hipointenso', 'hiperintenso',
+            'isointenso', 'secuencia', 'potenciada', 'supresión grasa'
+        ],
+        boostTerms: [
+            'hiperintensidad', 'hipointensidad', 'isointensidad', 'señal intermedia',
+            'restricción a la difusión', 'caída de señal', 'en fase', 'fuera de fase',
+            'saturación grasa', 'fatsat', 'secuencia ponderada', 'eco de gradiente',
+            'inversión recuperación', 'tiempo de eco', 'tiempo de repetición', 'vacío de señal',
+            'artefacto de susceptibilidad', 'artefacto de movimiento', 'captación de gadolinio',
+            'realce progresivo', 'realce precoz', 'curva de captación'
+        ]
+    },
+    eco: {
+        id: 'eco',
+        name: 'Ecografía',
+        keywords: [
+            'ecografía', 'ultrasonido', 'eco', 'doppler', 'transductor', 'sonda',
+            'ecogenicidad', 'sombra acústica', 'refuerzo posterior', 'anecoico',
+            'hipoecoico', 'hiperecoico', 'isoecoico', 'flujo'
+        ],
+        boostTerms: [
+            'hipoecogenicidad', 'hiperecogenicidad', 'isoecogenicidad', 'anecoico',
+            'sombra acústica posterior', 'refuerzo acústico posterior', 'artefacto en cola de cometa',
+            'reverberación', 'imagen en espejo', 'doppler color', 'doppler espectral',
+            'índice de resistencia', 'flujo hepatópeto', 'flujo hepatófugo', 'aliasing',
+            'onda sistólica', 'onda diastólica', 'baja resistencia', 'alta resistencia',
+            'elastrografía', 'onda de choque'
+        ]
     }
 };

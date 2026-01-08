@@ -24,7 +24,7 @@ import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
     const [fullText, setFullText] = useState('');
-    const { activeContext } = useAutomaticContext(fullText);
+    const { activeContexts } = useAutomaticContext(fullText);
 
     const { replacements, addReplacement } = useVocabulary();
     const { getMostUsedTerms } = useLearningStats();
@@ -39,9 +39,13 @@ export function TranscriptionEditor() {
     // Combine frequent terms + context boosted terms
     const [boostedTerms, setBoostedTerms] = useState<string[]>([]);
     useEffect(() => {
-        const contextTerms = activeContext?.terms || [];
-        setBoostedTerms([...frequentTerms, ...contextTerms]);
-    }, [activeContext, frequentTerms]);
+        // Collect terms from all active contexts
+        const contextTerms = activeContexts.flatMap(ctx => ctx.terms) || [];
+        // Unique terms only
+        const uniqueContextTerms = Array.from(new Set(contextTerms));
+
+        setBoostedTerms([...frequentTerms, ...uniqueContextTerms]);
+    }, [activeContexts, frequentTerms]);
 
     const {
         isListening,
@@ -482,10 +486,14 @@ export function TranscriptionEditor() {
                                 <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
                                     {isListening ? '● GRABANDO' : 'LISTO'}
                                 </div>
-                                {activeContext && (
-                                    <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-semibold border border-purple-200 dark:border-purple-800 animate-in fade-in slide-in-from-right-4 duration-500">
-                                        <Wand2 className="w-3 h-3" />
-                                        <span>{activeContext.description}</span>
+                                {activeContexts.length > 0 && (
+                                    <div className="flex items-center space-x-1 animate-in fade-in slide-in-from-right-4 duration-500">
+                                        {activeContexts.map(ctx => (
+                                            <div key={ctx.id} className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-semibold border border-purple-200 dark:border-purple-800">
+                                                <Wand2 className="w-3 h-3" />
+                                                <span>{ctx.description}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
