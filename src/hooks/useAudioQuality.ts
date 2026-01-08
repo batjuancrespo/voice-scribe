@@ -127,19 +127,24 @@ export const useAudioQuality = (isListening: boolean) => {
 
         const currentSNR = avgSignal - avgNoise;
 
-        // Determine quality
-        let quality: AudioQualityState['quality'] = 'good';
+        // Determine quality with Hysteresis to avoid flickering
+        let quality: AudioQualityState['quality'] = stats.quality;
         let recommendation: string | null = null;
 
-        if (currentSNR > 30) quality = 'excellent';
-        else if (currentSNR > 15) quality = 'good';
-        else if (currentSNR > 5) {
-            quality = 'fair';
-            recommendation = 'Acércate al micrófono';
-        } else {
-            quality = 'poor';
-            recommendation = 'Demasiado ruido de fondo';
-        }
+        const UP_THRESHOLD_EXCELLENT = 32;
+        const DOWN_THRESHOLD_EXCELLENT = 28;
+        const UP_THRESHOLD_GOOD = 17;
+        const DOWN_THRESHOLD_GOOD = 13;
+        const UP_THRESHOLD_FAIR = 7;
+        const DOWN_THRESHOLD_FAIR = 3;
+
+        if (currentSNR > UP_THRESHOLD_EXCELLENT) quality = 'excellent';
+        else if (currentSNR < DOWN_THRESHOLD_EXCELLENT && currentSNR > UP_THRESHOLD_GOOD) quality = 'good';
+        else if (currentSNR < DOWN_THRESHOLD_GOOD && currentSNR > UP_THRESHOLD_FAIR) quality = 'fair';
+        else if (currentSNR < DOWN_THRESHOLD_FAIR) quality = 'poor';
+
+        if (quality === 'fair') recommendation = 'Acércate al micrófono';
+        else if (quality === 'poor') recommendation = 'Demasiado ruido de fondo';
 
         setStats({
             snr: Math.round(currentSNR),

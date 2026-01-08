@@ -720,62 +720,75 @@ export function TranscriptionEditor() {
                         </button>
                     </div>
 
-                    {/* Audio Level Indicator */}
-                    {isListening && (
-                        <div className="flex flex-col items-center pb-6 px-4">
-                            <div className="w-full max-w-md space-y-2">
-                                {/* Audio level bar */}
-                                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full transition-all duration-100 ${isMuted ? 'bg-gray-400' :
-                                            isLow ? 'bg-yellow-500' :
-                                                'bg-green-500'
-                                            }`}
-                                        style={{ width: `${audioLevel}%` }}
-                                    />
-                                </div>
+                    {/* Unified Audio Status Bar (Stabilized) */}
+                    <div className="flex flex-col items-center pb-8 px-4 h-32">
+                        <div className={twMerge(
+                            "w-full max-w-md space-y-4 transition-all duration-500",
+                            isListening ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+                        )}>
+                            {/* Audio level bar */}
+                            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner font-sans">
+                                <div
+                                    className={twMerge(
+                                        "h-full transition-all duration-150 ease-out",
+                                        isMuted ? 'bg-gray-400' : isLow ? 'bg-yellow-500' : 'bg-indigo-500'
+                                    )}
+                                    style={{ width: `${audioLevel}%` }}
+                                />
+                            </div>
 
-                                {/* Warning messages */}
-                                {isLow && !isMuted && (
-                                    <div className="flex items-center justify-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                            {/* Unified Info Line */}
+                            <div className="flex flex-col items-center justify-center space-y-2 min-h-[48px] font-sans">
+                                {isMuted ? (
+                                    <div className="flex items-center space-x-2 text-red-500 dark:text-red-400 text-sm font-medium animate-pulse">
                                         <AlertTriangle className="w-4 h-4" />
-                                        <span>Audio bajo - acerca el micrófono</span>
+                                        <span>Micrófono silenciado o no detectado</span>
                                     </div>
-                                )}
-                                {isMuted && (
-                                    <div className="flex items-center justify-center space-x-2 text-red-600 dark:text-red-400 text-sm">
-                                        <AlertTriangle className="w-4 h-4" />
-                                        <span>No se detecta audio - verifica el micrófono</span>
-                                    </div>
-                                )}
-
-                                {/* SNR Quality Monitor */}
-                                {isListening && !isMuted && (
-                                    <div className="flex items-center justify-center gap-4 text-xs mt-2">
-                                        <div className={`px-2 py-1 rounded-full flex items-center gap-1 border ${quality === 'excellent' ? 'bg-green-100 text-green-700 border-green-200' :
-                                            quality === 'good' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                                quality === 'fair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                                    'bg-red-100 text-red-700 border-red-200'
-                                            }`}>
-                                            <span className="font-bold">SNR: {snr}dB</span>
-                                            <span>
-                                                {quality === 'excellent' && '✨ Excelente'}
-                                                {quality === 'good' && '✅ Bueno'}
-                                                {quality === 'fair' && '⚠️ Aceptable'}
-                                                {quality === 'poor' && '❌ Ruidoso'}
-                                            </span>
-                                        </div>
-                                        {recommendation && (
-                                            <div className="text-orange-500 flex items-center gap-1 animate-pulse">
-                                                <AlertTriangle className="w-3 h-3" />
-                                                {recommendation}
+                                ) : (
+                                    <div className="flex flex-col items-center space-y-2">
+                                        {/* Priority 1: Volume Warning */}
+                                        {isLow && (
+                                            <div className="flex items-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm font-medium">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                <span>Sube el volumen o acércate al micro</span>
                                             </div>
                                         )}
+
+                                        {/* Priority 2: Quality/SNR Info */}
+                                        <div className="flex items-center gap-3">
+                                            <div className={twMerge(
+                                                "px-3 py-1 rounded-full flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider border transition-colors duration-300",
+                                                quality === 'excellent' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                    quality === 'good' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                        quality === 'fair' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                            'bg-red-50 text-red-600 border-red-100'
+                                            )}>
+                                                <div className={twMerge(
+                                                    "w-1.5 h-1.5 rounded-full",
+                                                    quality === 'excellent' ? 'bg-green-500' :
+                                                        quality === 'good' ? 'bg-blue-500' :
+                                                            quality === 'fair' ? 'bg-yellow-500' :
+                                                                'bg-red-500'
+                                                )} />
+                                                SNR {snr}dB • {
+                                                    quality === 'excellent' ? 'Calidad Óptima' :
+                                                        quality === 'good' ? 'Buena Calidad' :
+                                                            quality === 'fair' ? 'Calidad Regular' :
+                                                                'Ambiente Ruidoso'
+                                                }
+                                            </div>
+
+                                            {recommendation && !isLow && (
+                                                <span className="text-[10px] text-orange-500 font-medium animate-pulse">
+                                                    {recommendation}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </>
             )}
         </div>
