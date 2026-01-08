@@ -117,9 +117,22 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                             <X className="w-6 h-6" />
                         </button>
                     </div>
-                    <p className="text-purple-100 text-sm mt-2">
-                        Pulsa sobre los textos marcados para <strong>rechazar</strong> o <strong>aceptar</strong> los cambios de la IA.
-                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                        <p className="text-purple-100 text-sm">
+                            Pulsa sobre los textos marcados para <strong>rechazar</strong> o <strong>aceptar</strong> los cambios de la IA.
+                        </p>
+                        {confidence !== undefined && (
+                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${confidence >= 0.9 ? 'bg-green-500/20 text-green-100' :
+                                    confidence >= 0.7 ? 'bg-yellow-500/20 text-yellow-100' :
+                                        'bg-orange-500/20 text-orange-100'
+                                }`}>
+                                {confidence >= 0.9 ? '🎯 Alta confianza' :
+                                    confidence >= 0.7 ? '⚠️ Confianza media' :
+                                        '🔍 Revisa con cuidado'}
+                                {' '}({Math.round(confidence * 100)}%)
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Body */}

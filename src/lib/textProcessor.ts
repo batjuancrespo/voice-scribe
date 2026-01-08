@@ -1,5 +1,6 @@
 import { RADIOLOGY_DICTIONARY } from './radiologyDictionary';
 import { convertTextNumbersToDigits, processMedicalMeasurements } from './numberConverter';
+import { correctSilentErrors } from './silentErrorDetector';
 
 export const PUNCTUATION_MAP: Record<string, string> = {
     " punto y aparte": ".\n",
@@ -49,6 +50,14 @@ function getLevenshteinDistance(a: string, b: string): number {
 
 export function processTranscriptSegment(text: string, userReplacements: Record<string, string> = {}, previousText: string = ''): string {
     let processed = text;
+
+    // 0. Silent Error Detection and Correction
+    // Fix common spacing/compound errors FIRST (e.g., "hipo ecogénico" -> "hipoecogénico")
+    const { correctedText, corrections } = correctSilentErrors(processed);
+    processed = correctedText;
+    if (corrections.length > 0) {
+        console.log('[Silent Errors Fixed]:', corrections);
+    }
 
     // 0. Quick Acronym Booster (TC, RM, BI-RADS, etc.)
     // Matches patterns like "tece", "erre eme", "birads"
