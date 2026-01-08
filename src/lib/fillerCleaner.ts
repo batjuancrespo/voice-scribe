@@ -18,7 +18,6 @@ export const MEDICAL_FILLER_WORDS = [
     "ya que",
     "nada",
     "verdad",
-    "no?",
 ];
 
 export interface CleaningResult {

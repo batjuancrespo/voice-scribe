@@ -449,7 +449,7 @@ export const RADIOLOGY_HINTS = [
     "tórax", "abdomen", "pelvis", "cráneo", "columna",
 
     // Puntuación (CRÍTICO: reforzar para evitar alucinaciones como BI-RADS)
-    "punto", "coma", "dos puntos", "nuevo párrafo", "nueva línea",
+    "no", "punto", "coma", "dos puntos", "nuevo párrafo", "nueva línea",
 
     // Hallazgos
     "nódulo", "masa", "lesión", "derrame", "neumotórax",

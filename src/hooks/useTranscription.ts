@@ -147,7 +147,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             ]);
 
             // Protected short words that should NOT be overridden by smart selection
-            const protectedShortWords = new Set(['punto', 'coma', 'dos', 'guion', 'y', 'o', 'de', 'en', 'la', 'el']);
+            const protectedShortWords = new Set(['no', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'de', 'en', 'la', 'el']);
 
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
