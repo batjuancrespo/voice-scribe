@@ -11,14 +11,26 @@ import { StructuredTemplateEditor } from '@/components/StructuredTemplateEditor'
 import { supabase } from '@/lib/supabaseClient';
 import { Template } from '@/hooks/useTemplates';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
+import { useLearningStats } from '@/hooks/useLearningStats';
 import { AiSettingsModal } from './AiSettingsModal';
 import { CorrectionReviewModal } from './CorrectionReviewModal';
-import { Mic, Square, Trash2, Copy, Check, Settings, Sparkles, Wand2, LogOut, LayoutTemplate, MessageSquare, AlertTriangle, BookPlus, X, Sun, Moon, FileText, Book } from 'lucide-react';
+import { LearningDashboard } from './LearningDashboard';
+import { TrainingMode } from './TrainingMode';
+import { Mic, Square, Trash2, Copy, Check, Settings, Sparkles, Wand2, LogOut, LayoutTemplate, MessageSquare, AlertTriangle, BookPlus, X, Sun, Moon, FileText, Book, TrendingUp, Target } from 'lucide-react';
 import { computeDiff } from '@/lib/diffUtils';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
     const { replacements, addReplacement } = useVocabulary();
+    const { getMostUsedTerms } = useLearningStats();
+    const [frequentTerms, setFrequentTerms] = useState<string[]>([]);
+
+    useEffect(() => {
+        getMostUsedTerms(20).then(terms => {
+            setFrequentTerms(terms.map(t => t.term));
+        });
+    }, [getMostUsedTerms]);
+
     const {
         isListening,
         interimResult,
@@ -26,7 +38,7 @@ export function TranscriptionEditor() {
         error,
         startListening,
         stopListening,
-    } = useTranscription(replacements);
+    } = useTranscription(replacements, frequentTerms);
 
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
@@ -34,6 +46,8 @@ export function TranscriptionEditor() {
     const [showSettings, setShowSettings] = useState(false);
     const [showAiSettings, setShowAiSettings] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [showDashboard, setShowDashboard] = useState(false);
+    const [showTraining, setShowTraining] = useState(false);
     const [editSuggestion, setEditSuggestion] = useState<{ original: string, replacement: string } | null>(null);
     const isAutoChangeRef = useRef(false);
     const [isCorrecting, setIsCorrecting] = useState(false);
@@ -371,6 +385,20 @@ export function TranscriptionEditor() {
                         <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </button>
                     <button
+                        onClick={() => setShowDashboard(!showDashboard)}
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+                        title="Panel de Aprendizaje"
+                    >
+                        <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </button>
+                    <button
+                        onClick={() => setShowTraining(!showTraining)}
+                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+                        title="Modo Entrenamiento"
+                    >
+                        <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </button>
+                    <button
                         onClick={() => setShowSettings(!showSettings)}
                         className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
                         title="Diccionario"
@@ -501,6 +529,33 @@ export function TranscriptionEditor() {
                                 confidence={reviewData?.confidence}
                                 onApply={handleApplyReview}
                                 onSaveToDictionary={addReplacement}
+                            />
+
+                            <LearningDashboard
+                                isOpen={showDashboard}
+                                onClose={() => setShowDashboard(false)}
+                            />
+
+                            <TrainingMode
+                                isOpen={showTraining}
+                                onClose={() => setShowTraining(false)}
+                                isListening={isListening}
+                                transcript={lastEvent?.text || ''}
+                                onStartListening={() => {
+                                    if (!isListening) {
+                                        startListening();
+                                        initAudio();
+                                    }
+                                }}
+                                onStopListening={() => {
+                                    if (isListening) {
+                                        stopListening();
+                                        cleanupAudio();
+                                    }
+                                }}
+                                onComplete={(results) => {
+                                    results.forEach(r => addReplacement(r.error, r.correct));
+                                }}
                             />
 
 

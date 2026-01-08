@@ -17,7 +17,7 @@ export interface TranscriptionEvent {
     confidence?: number;
 }
 
-export const useTranscription = (userReplacements: Record<string, string> = {}) => {
+export const useTranscription = (userReplacements: Record<string, string> = {}, boostedTerms: string[] = []) => {
     const [isListening, setIsListening] = useState(false);
     const [interimResult, setInterimResult] = useState('');
     const [lastEvent, setLastEvent] = useState<TranscriptionEvent | null>(null);
@@ -37,16 +37,26 @@ export const useTranscription = (userReplacements: Record<string, string> = {}) 
             try {
                 const dictionaryTerms = Object.keys(userReplacements);
                 const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
+
+                // standard grammar (weight 1)
                 const grammarList = new SpeechGrammarList();
                 const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
                 grammarList.addFromString(grammar, 1);
+
+                // boosted grammar (weight 5) for frequent terms
+                if (boostedTerms.length > 0) {
+                    const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
+                    grammarList.addFromString(boostedGrammar, 5); // 5x importance
+                    console.log('[Grammar] Boosted terms:', boostedTerms);
+                }
+
                 recognitionRef.current.grammars = grammarList;
                 console.log('[Grammar] Injected hints:', dictionaryTerms.length, 'custom terms');
             } catch (e) {
                 console.warn('Failed to update grammar:', e);
             }
         }
-    }, [userReplacements]);
+    }, [userReplacements, boostedTerms]);
 
     useEffect(() => {
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
