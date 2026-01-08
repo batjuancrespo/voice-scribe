@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Check, ArrowRight, Undo2, Ban, BookPlus } from 'lucide-react';
 import { computeDiff, DiffChunk } from '@/lib/diffUtils';
+import { useErrorTracking } from '@/hooks/useErrorTracking';
 
 interface CorrectionReviewModalProps {
     isOpen: boolean;
     onClose: () => void;
     originalText: string;
     correctedText: string;
+    confidence?: number;
     onApply: (finalText: string) => void;
     onSaveToDictionary?: (original: string, replacement: string) => void;
 }
@@ -19,8 +21,9 @@ interface InteractiveChunk extends DiffChunk {
     saved?: boolean;
 }
 
-export function CorrectionReviewModal({ isOpen, onClose, originalText, correctedText, onApply, onSaveToDictionary }: CorrectionReviewModalProps) {
+export function CorrectionReviewModal({ isOpen, onClose, originalText, correctedText, confidence, onApply, onSaveToDictionary }: CorrectionReviewModalProps) {
     const [chunks, setChunks] = useState<InteractiveChunk[]>([]);
+    const { logCorrection } = useErrorTracking();
 
     useEffect(() => {
         if (isOpen && originalText && correctedText) {
@@ -76,6 +79,26 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
             return c.value; // Unchanged
         }).join('');
     }, [chunks]);
+
+    const handleApply = async () => {
+        // Extract context (50 chars before and after the changed text)
+        const contextBefore = originalText.slice(Math.max(0, originalText.length - 50));
+        const contextAfter = correctedText.slice(0, 50);
+
+        // Log the correction
+        await logCorrection({
+            originalText,
+            correctedText: finalPreview,
+            confidence,
+            contextBefore,
+            contextAfter,
+            correctionType: originalText.includes(' ') && correctedText.includes(' ') ? 'phrase' : 'word'
+        }, true);
+
+        // Apply the changes
+        onApply(finalPreview);
+        onClose();
+    };
 
     if (!isOpen) return null;
 
@@ -174,7 +197,7 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                         Cancelar
                     </button>
                     <button
-                        onClick={() => onApply(finalPreview)}
+                        onClick={handleApply}
                         className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/20 flex items-center gap-2"
                     >
                         <Check className="w-5 h-5" />

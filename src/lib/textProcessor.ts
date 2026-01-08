@@ -79,8 +79,21 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
         processed = processed.replace(regex, replacement);
     });
 
-    // 3. User Vocabulary Replacements + Fuzzy Matching
+    // 3. User Vocabulary Replacements (Phrases first, then words)
     const sortedReplacements = Object.entries(userReplacements).sort((a, b) => b[0].length - a[0].length);
+
+    // Separate phrases (contain spaces) from single words
+    const phraseReplacements = sortedReplacements.filter(([orig]) => orig.includes(' '));
+    const wordReplacements = sortedReplacements.filter(([orig]) => !orig.includes(' '));
+
+    // Process phrases first (they're longer and more specific)
+    phraseReplacements.forEach(([original, replacement]) => {
+        const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`${boundaryStart}${escaped}${boundaryEnd}`, 'gi');
+        processed = processed.replace(regex, replacement);
+    });
+
+    // Then process word-level replacements with fuzzy matching
     const words = processed.split(/(\s+)/);
 
     const processedWords = words.map(word => {
@@ -89,7 +102,7 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
         const cleanWord = word.trim().toLowerCase().replace(/[.,:;?!]/g, '');
 
         // Exact Match
-        for (const [original, replacement] of sortedReplacements) {
+        for (const [original, replacement] of wordReplacements) {
             if (cleanWord === original.toLowerCase()) {
                 return word.toLowerCase().replace(cleanWord, replacement);
             }
@@ -97,7 +110,7 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
 
         // Fuzzy Match (only for longer words > 4 chars)
         if (cleanWord.length > 4) {
-            for (const [original, replacement] of sortedReplacements) {
+            for (const [original, replacement] of wordReplacements) {
                 // If the error term is also long enough
                 if (original.length > 4) {
                     const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());

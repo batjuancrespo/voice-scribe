@@ -38,7 +38,7 @@ export function TranscriptionEditor() {
     const isAutoChangeRef = useRef(false);
     const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
-    const [reviewData, setReviewData] = useState<{ original: string; corrected: string } | null>(null);
+    const [reviewData, setReviewData] = useState<{ original: string; corrected: string; confidence?: number } | null>(null);
     const [darkMode, setDarkMode] = useState(true); // Dark mode by default
     const [lastCopiedText, setLastCopiedText] = useState('');
 
@@ -191,7 +191,8 @@ export function TranscriptionEditor() {
             if (response.ok && data.correctedText) {
                 setReviewData({
                     original: fullText,
-                    corrected: data.correctedText
+                    corrected: data.correctedText,
+                    confidence: data.confidence || 0.8
                 });
             } else {
                 console.error('AI Error:', data.error);
@@ -497,6 +498,7 @@ export function TranscriptionEditor() {
                                 onClose={() => setReviewData(null)}
                                 originalText={reviewData?.original || ''}
                                 correctedText={reviewData?.corrected || ''}
+                                confidence={reviewData?.confidence}
                                 onApply={handleApplyReview}
                                 onSaveToDictionary={addReplacement}
                             />
