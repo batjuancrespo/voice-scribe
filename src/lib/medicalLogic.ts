@@ -137,6 +137,41 @@ export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
         }
     });
 
+    // 3. Check for CLINICAL CONTRADICTIONS (Sprint 3)
+    // Case A: Existence (Negation -> Positive)
+    // "No se observa el bazo" ... later "Bazo de tamaño normal"
+    Object.values(MEDICAL_NOUNS).forEach(organ => {
+        const negationPattern = new RegExp(`(?:no\\s+se\\s+(?:observa|visualiza|identifica|aprecia))\\s+(?:el|la)?\\s*\\b${organ.term}\\b`, 'gi');
+        const existencePattern = new RegExp(`\\b${organ.term}\\b`, 'gi');
+
+        if (negationPattern.test(lowerText)) {
+            // Find where it was negated
+            negationPattern.lastIndex = 0;
+            const negationMatch = negationPattern.exec(lowerText);
+            if (!negationMatch) return;
+
+            const negationIdx = negationMatch.index;
+
+            // Look for subsequent positive mentions that list a state/size
+            // e.g. "bazo de tamaño normal", "bazo aumentado", "bazo con lesión"
+            const stateKeywords = ['tamaño', 'forma', 'ecogenicidad', 'lesión', 'masa', 'nódulo', 'normal', 'aumentad', 'disminuid'];
+            const statePattern = new RegExp(`\\b${organ.term}\\b\\s+(?:\\w+\\s+){0,3}(?:${stateKeywords.join('|')})`, 'gi');
+
+            statePattern.lastIndex = negationIdx + negationMatch[0].length;
+            const stateMatch = statePattern.exec(lowerText);
+
+            if (stateMatch) {
+                issues.push({
+                    id: `cont-${stateMatch.index}`,
+                    type: 'laterality', // Reusing laterality for now as it triggers relevant UI alerts
+                    text: stateMatch[0],
+                    message: `Contradicción: Previamente indicaste que no se observa el ${organ.term}.`,
+                    index: stateMatch.index
+                });
+            }
+        }
+    });
+
     return issues;
 }
 

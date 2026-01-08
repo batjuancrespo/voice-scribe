@@ -305,6 +305,9 @@ export function TranscriptionEditor() {
             const context = prevText.substring(0, range.start);
             let processedText = processTranscriptSegment(lastEvent.text, replacements, context);
 
+            let before = prevText.substring(0, range.start);
+            const after = prevText.substring(range.end);
+
             // Voice Command: Template Insertion
             const templateCommandMatch = processedText.match(/insertar plantilla\s+(.+)/i);
             if (templateCommandMatch) {
@@ -315,8 +318,29 @@ export function TranscriptionEditor() {
                 }
             }
 
-            let before = prevText.substring(0, range.start);
-            const after = prevText.substring(range.end);
+            // Voice Command: Editing (Sprint 2)
+            if (processedText.toLowerCase().includes('borrar última palabra')) {
+                const parts = before.trimEnd().split(/\s+/);
+                if (parts.length > 0) {
+                    parts.pop();
+                    before = parts.join(' ');
+                    // Add back space if needed
+                    if (before.length > 0) before += ' ';
+                }
+                processedText = ''; // Consume the command
+            } else if (processedText.toLowerCase().includes('borrar línea') || processedText.toLowerCase().includes('borrar párrafo')) {
+                const lines = before.split('\n');
+                if (lines.length > 0) {
+                    lines.pop();
+                    before = lines.join('\n');
+                    if (before.length > 0 && !before.endsWith('\n')) before += '\n';
+                }
+                processedText = ''; // Consume the command
+            } else if (processedText.toLowerCase().includes('deshacer dictado') || processedText.toLowerCase() === 'deshacer') {
+                // Restore previous text before this segment
+                setFullText(prevText);
+                return; // Stop processing this event
+            }
 
             if (/^[.,:;?!]/.test(processedText)) {
                 before = before.trimEnd();

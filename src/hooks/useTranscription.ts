@@ -146,8 +146,8 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 ...Object.keys(userReplacements).map(t => t.toLowerCase())
             ]);
 
-            // Protected short words that should NOT be overridden by smart selection
-            const protectedShortWords = new Set(['no', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'de', 'en', 'la', 'el']);
+            // Protected short words that should NOT be overridden by smart selection (Clinical Safety)
+            const protectedShortWords = new Set(['no', 'sí', 'si', 'con', 'sin', 'en', 'de', 'del', 'al', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'la', 'el']);
 
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];

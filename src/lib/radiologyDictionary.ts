@@ -448,8 +448,8 @@ export const RADIOLOGY_HINTS = [
     // Anatomía básica
     "tórax", "abdomen", "pelvis", "cráneo", "columna",
 
-    // Puntuación (CRÍTICO: reforzar para evitar alucinaciones como BI-RADS)
-    "no", "punto", "coma", "dos puntos", "nuevo párrafo", "nueva línea",
+    // Puntuación y Conectores Críticos (CRÍTICO: evitar falsos negativos en negaciones/afirmaciones)
+    "no", "sí", "con", "sin", "en", "de", "del", "al", "punto", "coma", "dos puntos", "nuevo párrafo", "nueva línea",
 
     // Hallazgos
     "nódulo", "masa", "lesión", "derrame", "neumotórax",
