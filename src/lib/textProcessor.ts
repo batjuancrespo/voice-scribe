@@ -117,10 +117,17 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     protectedWords.add('coma');
     protectedWords.add('dos puntos');
 
-    // Quality 7.0: Dynamic Medical Vocabulary for Fuzzy Matching
+    // Quality 7.1: Strict Medical Vocabulary for Fuzzy Matching
     // Filter RADIOLOGY_DICTIONARY for single words > 5 chars to avoid noise
     const medicalWordReplacements = Object.entries(RADIOLOGY_DICTIONARY)
         .filter(([orig]) => !orig.includes(' ') && orig.length > 5);
+
+    // Create a set of "Valid Outcomes" to avoid correcting something that is already correct
+    const validMedicalTerms = new Set<string>();
+    Object.entries(RADIOLOGY_DICTIONARY).forEach(([k, v]) => {
+        if (!k.includes(' ')) validMedicalTerms.add(k.toLowerCase());
+        if (typeof v === 'string' && !v.includes(' ')) validMedicalTerms.add(v.toLowerCase());
+    });
 
     // Combine user dictionary and medical dictionary
     const fuzzyTargets = [...wordReplacements, ...medicalWordReplacements];
@@ -135,41 +142,59 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
             return word;
         }
 
+        // Quality 7.1: If the word is ALREADY a valid medical term or plural of one, SKIP FUZZY
+        // This prevents "densidad" -> "isodensidad" or "normales" -> "normal"
+        const isPlural = cleanWord.endsWith('s') && cleanWord.length > 4;
+        const singularWord = isPlural ? cleanWord.slice(0, -1) : cleanWord;
+
+        if (validMedicalTerms.has(cleanWord) || validMedicalTerms.has(singularWord)) {
+            return word;
+        }
+
         // Exact Match (User dictates something exactly as in dictionary)
-        // This is already done for RADIOLOGY_DICTIONARY at the start of the function for phrases and words,
-        // but we keep user exact matches here as they are per-token.
         for (const [original, replacement] of wordReplacements) {
             if (cleanWord === original.toLowerCase()) {
-                return word.toLowerCase().replace(cleanWord, replacement);
+                const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
+                const result = word.toLowerCase().replace(cleanWord, replacement);
+                return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
             }
         }
 
-        // Fuzzy Match (Quality 7.0: Expanded to all medical terms)
+        // Fuzzy Match (Quality 7.1: Calibrated thresholds)
         if (cleanWord.length > 5) {
             for (const [original, replacement] of fuzzyTargets) {
-                // If the target term is also long enough
                 if (original.length > 5) {
                     const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());
 
-                    // Adaptive Threshold: 
-                    // - 2 errors for words up to 10 chars
-                    // - 3 errors for longer medical terms (e.g. "colecisto-pancreatografía")
-                    const threshold = original.length > 10 ? 3 : 2;
+                    // Quality 7.1: Stricter Thresholds
+                    // - 1 error for words up to 8 chars
+                    // - 2 errors for words up to 12 chars
+                    // - 3 errors ONLY for very long terms (> 12 chars)
+                    let threshold = 1;
+                    if (original.length > 12) threshold = 3;
+                    else if (original.length > 8) threshold = 2;
 
-                    if (distance <= threshold && distance > 0) {
+                    // Substring Protection: If one is a substring of another and dist > 1, reject
+                    // This specifically fixes "densidad" (dist 3) matching "isodensidad"
+                    const isSub = original.toLowerCase().includes(cleanWord) || cleanWord.includes(original.toLowerCase());
+                    const finalThreshold = (isSub && distance > 1) ? 1 : threshold;
+
+                    if (distance <= finalThreshold && distance > 0) {
                         console.log(`[Fuzzy Total Match] "${cleanWord}" matches "${original}". Correcting to "${replacement}"`);
-                        // Preserva capitalization if first letter was upper
                         const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
                         const result = word.toLowerCase().replace(cleanWord, replacement);
                         return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
                     }
 
-                    // SECONDARY: Phonetic Match (if sounds identical but spelling is very different)
+                    // SECONDARY: Phonetic Match (Strict: only if length is similar)
                     if (getSpanishPhoneticCode(cleanWord) === getSpanishPhoneticCode(original)) {
-                        console.log(`[Phonetic Match] "${cleanWord}" sounds like "${original}". Correcting to "${replacement}"`);
-                        const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
-                        const result = word.toLowerCase().replace(cleanWord, replacement);
-                        return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
+                        const lenDiff = Math.abs(cleanWord.length - original.length);
+                        if (lenDiff <= 2) {
+                            console.log(`[Phonetic Match] "${cleanWord}" sounds like "${original}". Correcting to "${replacement}"`);
+                            const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
+                            const result = word.toLowerCase().replace(cleanWord, replacement);
+                            return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
+                        }
                     }
                 }
             }
