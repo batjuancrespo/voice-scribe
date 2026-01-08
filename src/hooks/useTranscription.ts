@@ -43,11 +43,11 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
                 grammarList.addFromString(grammar, 1);
 
-                // boosted grammar (weight 5) for frequent terms
+                // boosted grammar (weight 2) - Higher than 1 but not aggressive
                 if (boostedTerms.length > 0) {
                     const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
-                    grammarList.addFromString(boostedGrammar, 5); // 5x importance
-                    console.log('[Grammar] Boosted terms:', boostedTerms);
+                    grammarList.addFromString(boostedGrammar, 2);
+                    console.log('[Grammar] Boosted terms (weight 2):', boostedTerms);
                 }
 
                 recognitionRef.current.grammars = grammarList;
@@ -146,6 +146,9 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 ...Object.keys(userReplacements).map(t => t.toLowerCase())
             ]);
 
+            // Protected short words that should NOT be overridden by smart selection
+            const protectedShortWords = new Set(['punto', 'coma', 'dos', 'guion', 'y', 'o', 'de', 'en', 'la', 'el']);
+
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
 
@@ -156,8 +159,13 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                     let foundMedicalMatch = false;
 
                     // Check if the primary alternative itself is a medical term
-                    const primaryWords = bestTranscript.toLowerCase().split(/\s+/);
-                    if (primaryWords.some((w: string) => medicalTermsSet.has(w))) {
+                    const primaryWords = bestTranscript.toLowerCase().trim().split(/\s+/);
+                    const primaryIsMedical = primaryWords.some((w: string) => medicalTermsSet.has(w));
+
+                    // If primary is protected (e.g. "punto"), SKIP smart selection
+                    if (primaryWords.length === 1 && protectedShortWords.has(primaryWords[0])) {
+                        foundMedicalMatch = true; // Pretend we matched so we skip alternative scan
+                    } else if (primaryIsMedical) {
                         foundMedicalMatch = true;
                     }
 
