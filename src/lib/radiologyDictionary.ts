@@ -462,10 +462,6 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "punto y coma": ";",
     "comillas": '"',
     "nuevo párrafo": "\n",
-    "nueva línea": "\n",
-    "abrir paréntesis": "(",
-    "cerrar paréntesis": ")",
-    "comillas": '"',
 
     // === FARMACOLOGÍA Y CONTRASTES (Quality 9.2) ===
     "iohexol": "iohexol",
@@ -483,6 +479,19 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "glucagón": "glucagón",
     "furosemida": "furosemida",
     "seguril": "Seguril",
+
+    // === COLUMNA Y ABREVIATURAS ANATÓMICAS (Quality 9.3) ===
+    "LPD": "LPD", // Lóbulo Pulmonar Derecho
+    "LPI": "LPI", // Lóbulo Pulmonar Izquierdo
+    "LSM": "LSM", // Lóbulo Superior Medio
+    "ele cinco ese uno": "L5-S1",
+    "ele cuatro ele cinco": "L4-L5",
+    "ce cinco ce seis": "C5-C6",
+    "foramen": "foramen",
+    "agujero de conjunción": "foramen",
+    "receso lateral": "receso lateral",
+    "platillos vertebrales": "platillos vertebrales",
+    "hipertrofia de facetas": "hipertrofia facetaria",
 };
 
 // Medical hints for Web Speech API - palabras que usa frecuentemente
@@ -530,5 +539,10 @@ export const RADIOLOGY_HINTS = [
 
     // Farmacología y Contraste
     "iohexol", "iopamidol", "gadobutrol", "gadoterato", "gadoxetato", "primovist",
-    "buscapina", "hioscina", "primperan", "metoclopramida", "glucagón", "furosemida", "seguril"
+    "buscapina", "hioscina", "primperan", "metoclopramida", "glucagón", "furosemida", "seguril",
+
+    // Columna y Estadiaje
+    "columna", "vértebra", "nivel", "disco", "foramen", "raquídeo", "módulo", "TNM",
+    "LPD", "LPI", "LSM", "L1", "L2", "L3", "L4", "L5", "S1", "C1", "C2", "C3", "C4", "C5", "C6", "C7",
+    "T1", "T2", "T3", "T4", "N0", "N1", "N2", "M0", "M1"
 ];

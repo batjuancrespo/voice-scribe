@@ -70,6 +70,23 @@ export function convertTextNumbersToDigits(text: string): string {
     // 8. Convert "de X por Y mm" → "de XxY mm"
     result = result.replace(/de\s+(\d+)\s*x\s*(\d+)\s*(mm|cm|uh|cc)/gi, 'de $1x$2 $3');
 
+    // 9. Convert "de X por Y por Z mm" → "de XxYxZ mm" (Quality 9.3)
+    result = result.replace(/(\d+)\s*x\s*(\d+)\s*x\s*(\d+)\s*(mm|cm|uh|cc)/gi, '$1x$2x$3 $4');
+
+    // 10. Vertebral Levels (Quality 9.3)
+    // Convert "ele 4 ele 5" or "L 4 L 5" to "L4-L5"
+    result = result.replace(/\b([CLSTclst])\s*(\d+)\s*([CLSTclst])\s*(\d+)\b/g, (match, p1, p2, p3, p4) => {
+        if (p1.toUpperCase() === p3.toUpperCase()) {
+            return `${p1.toUpperCase()}${p2}-${p3.toUpperCase()}${p4}`;
+        }
+        return match;
+    });
+    // Individual levels "ele 4" -> "L4"
+    result = result.replace(/\b(ele|ce|te|ese)\s*(\d+)\b/gi, (match, p1, p2) => {
+        const map: Record<string, string> = { 'ele': 'L', 'ce': 'C', 'te': 'T', 'ese': 'S' };
+        return `${map[p1.toLowerCase()]}${p2}`;
+    });
+
     return result;
 }
 
@@ -129,6 +146,10 @@ export function processMedicalMeasurements(text: string): string {
 
     // TNM Staging
     result = processTNMStaging(result);
+
+    // Advanced TNM Prefixes (Quality 9.3)
+    result = result.replace(/\bclínico\s+([tT][\d][a-z]?)\b/gi, 'c$1');
+    result = result.replace(/\bpatológico\s+([tT][\d][a-z]?)\b/gi, 'p$1');
 
     return result;
 }

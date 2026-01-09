@@ -155,5 +155,21 @@ export const CONTEXT_DEFINITIONS: Record<string, ContextDefinition> = {
             'onda sistólica', 'onda diastólica', 'baja resistencia', 'alta resistencia',
             'elastrografía', 'onda de choque'
         ]
+    },
+    columna: {
+        id: 'columna',
+        name: 'Columna Vertebral',
+        keywords: [
+            'columna', 'vértebra', 'disco', 'intervertebral', 'foramen', 'agujero',
+            'canal', 'espinal', 'raquídeo', 'médula', 'raíz', 'nerviosa', 'sacro',
+            'cervical', 'dorsal', 'lumbar', 'apófisis', 'espina', 'lámina'
+        ],
+        boostTerms: [
+            'nivel', 'interespacio', 'plataforma', 'platillo', 'osteofito', 'sindesmofito',
+            'hernia discal', 'protrusión', 'extrusión', 'migración', 'abombamiento',
+            'estenosis de canal', 'receso lateral', 'hipertrofia de facetas', 'ligamento amarillo',
+            'mielopatía', 'radiculopatía', 'listesis', 'anterolistesis', 'retrolistesis',
+            'espondilosis', 'espondilólisis', 'platillos vertebrales', 'Modic', 'cuerpos vertebrales'
+        ]
     }
 };
