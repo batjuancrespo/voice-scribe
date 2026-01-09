@@ -13,10 +13,8 @@ export const MEDICAL_FILLER_WORDS = [
     "bueno",
     "pues",
     "entonces",
-    "a ver",
-    "este...",
+    "a ver...",
     "ya que",
-    "nada",
     "verdad",
 ];
 
