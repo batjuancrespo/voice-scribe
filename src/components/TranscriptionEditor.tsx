@@ -129,6 +129,37 @@ export function TranscriptionEditor() {
             }, 3000); // 3 second delay
         }
     }, [fullText, aiKey, aiModel, isListening]);
+
+    // Auto-Punctuation by Silence (Quality 9.1)
+    const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    useEffect(() => {
+        if (!isListening) {
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+            return;
+        }
+
+        // Reset timer on any transcription activity
+        if (interimResult || lastEvent) {
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+
+            silenceTimerRef.current = setTimeout(() => {
+                setFullText(prev => {
+                    const trimmed = prev.trim();
+                    if (!trimmed) return prev;
+                    // If doesn't end in punctuation, add a period
+                    if (!/[.!?:](\s+)?$/.test(trimmed)) {
+                        console.log("[Auto-Punctuation] Silence detected, adding period.");
+                        return trimmed + ". ";
+                    }
+                    return prev;
+                });
+            }, 1800); // 1.8s silence threshold for auto-period
+        }
+
+        return () => {
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        };
+    }, [interimResult, lastEvent, isListening]);
     const [isCorrecting, setIsCorrecting] = useState(false);
     const [activeStructuredTemplate, setActiveStructuredTemplate] = useState<Template | null>(null);
     const [reviewData, setReviewData] = useState<{ original: string; corrected: string; confidence?: number } | null>(null);

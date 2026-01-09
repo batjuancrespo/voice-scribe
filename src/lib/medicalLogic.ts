@@ -58,6 +58,9 @@ export interface MedicalConsistencyIssue {
 export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
     const issues: MedicalConsistencyIssue[] = [];
     const lowerText = text.toLowerCase();
+    const sentences = text.split(/(?<=[.!?])\s+|\n/);
+
+    let currentContextSide: 'right' | 'left' | null = null;
 
     // 1. Check for IMPOSSIBLE LATERALITY (e.g., "Bazo derecho")
     // We scan for Noun + (words) + Side
@@ -137,6 +140,40 @@ export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
         }
     });
 
+    // 4. Contextual Laterality Check (Smart Context)
+    // Scan sentences and track moving side context
+    let globalPos = 0;
+    sentences.forEach(sentence => {
+        const lowerSentence = sentence.toLowerCase();
+
+        // Update context if a side is mentioned clearly
+        if (/\bderech[oa]\b/.test(lowerSentence)) currentContextSide = 'right';
+        else if (/\bizquierd[oa]\b/.test(lowerSentence)) currentContextSide = 'left';
+
+        // Check paired organs in this sentence
+        Object.values(MEDICAL_NOUNS).forEach(organ => {
+            if (!organ.isPaired) return;
+
+            const organMatch = new RegExp(`\\b${organ.term}\\b`, 'gi').exec(lowerSentence);
+            if (organMatch) {
+                const hasSide = /\bderech[oa]\b|\bizquierd[oa]\b|\bbilateral\b/.test(lowerSentence);
+
+                if (!hasSide && currentContextSide) {
+                    issues.push({
+                        id: `ctxlat-${globalPos + organMatch.index}`,
+                        type: 'laterality',
+                        text: organ.term,
+                        message: `¿Te refieres al ${organ.term} ${currentContextSide === 'right' ? 'derecho' : 'izquierdo'}?`,
+                        suggestion: `${organ.term} ${currentContextSide === 'right' ? 'derecho' : 'izquierdo'}`,
+                        index: globalPos + organMatch.index
+                    });
+                }
+            }
+        });
+
+        globalPos += sentence.length + 1; // +1 for the separator
+    });
+
     // 3. Check for CLINICAL CONTRADICTIONS (Sprint 3)
     // Case A: Existence (Negation -> Positive)
     // "No se observa el bazo" ... later "Bazo de tamaño normal"
@@ -181,5 +218,7 @@ export function normalizeMeasurements(text: string): string {
     return text
         .replace(/(\d+)\s+por\s+(\d+)/gi, '$1 x $2')
         .replace(/\bcentímetros\b/gi, 'cm')
-        .replace(/\bmilímetros\b/gi, 'mm');
+        .replace(/\bmilímetros\b/gi, 'mm')
+        .replace(/\bunidades\s+hounsfield\b/gi, 'UH')
+        .replace(/\bcentímetros\s+cúbicos\b/gi, 'cc');
 }

@@ -16,16 +16,10 @@ const UNITS: Record<string, number> = {
 };
 
 const DECIMALS: Record<string, string> = {
-    'coma cero': '.0',
-    'coma uno': '.1',
-    'coma dos': '.2',
-    'coma tres': '.3',
-    'coma cuatro': '.4',
-    'coma cinco': '.5',
-    'coma seis': '.6',
-    'coma siete': '.7',
-    'coma ocho': '.8',
-    'coma nueve': '.9',
+    'coma cero': '.0', 'coma uno': '.1', 'coma dos': '.2', 'coma tres': '.3', 'coma cuatro': '.4',
+    'coma cinco': '.5', 'coma seis': '.6', 'coma siete': '.7', 'coma ocho': '.8', 'coma nueve': '.9',
+    'punto cero': '.0', 'punto uno': '.1', 'punto dos': '.2', 'punto tres': '.3', 'punto cuatro': '.4',
+    'punto cinco': '.5', 'punto seis': '.6', 'punto siete': '.7', 'punto ocho': '.8', 'punto nueve': '.9',
 };
 
 // Convert text numbers to digits
@@ -71,10 +65,10 @@ export function convertTextNumbersToDigits(text: string): string {
 
     // 7. Measurement patterns - "de X milímetros" → "de X mm" (already handled by dictionary)
     // But ensure spacing: "15mm" → "15 mm"
-    result = result.replace(/(\d+)(mm|cm|m)\b/g, '$1 $2');
+    result = result.replace(/(\d+)(mm|cm|m|uh|cc)\b/gi, '$1 $2');
 
     // 8. Convert "de X por Y mm" → "de XxY mm"
-    result = result.replace(/de\s+(\d+)\s*x\s*(\d+)\s*(mm|cm)/gi, 'de $1x$2 $3');
+    result = result.replace(/de\s+(\d+)\s*x\s*(\d+)\s*(mm|cm|uh|cc)/gi, 'de $1x$2 $3');
 
     return result;
 }
@@ -126,6 +120,12 @@ export function processMedicalMeasurements(text: string): string {
 
     // "de aproximadamente X mm"
     result = result.replace(/aproximadamente\s+(\d+)/gi, '≈$1');
+
+    // Units normalization (fallback if dictionary misses it)
+    result = result.replace(/(\d+)\s+unidades\s+hounsfield/gi, '$1 UH');
+    result = result.replace(/(\d+)\s+centímetros\s+cúbicos/gi, '$1 cc');
+    result = result.replace(/(\d+)\s+milímetros/gi, '$1 mm');
+    result = result.replace(/(\d+)\s+centímetros/gi, '$1 cm');
 
     // TNM Staging
     result = processTNMStaging(result);
