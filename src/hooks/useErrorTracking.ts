@@ -55,8 +55,8 @@ export function useErrorTracking() {
                 const { error: statsError } = await supabase
                     .rpc('increment_learning_stat', {
                         p_user_id: user.id,
-                        p_error_pattern: record.originalText.toLowerCase().trim(),
-                        p_correction: record.correctedText.trim(),
+                        p_error_pattern: record.originalText.toLowerCase().replace(/\s+/g, ' ').trim(),
+                        p_correction: record.correctedText.replace(/\s+/g, ' ').trim(),
                         p_context: contextHints
                     });
 
@@ -126,12 +126,15 @@ export function useErrorTracking() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            await supabase
+            const { error, count } = await supabase
                 .from('learning_stats')
                 .update({ auto_learned: true })
                 .eq('user_id', user.id)
-                .eq('error_pattern', errorPattern.toLowerCase().trim())
-                .eq('correction', correction.trim());
+                .eq('error_pattern', errorPattern)
+                .eq('correction', correction);
+
+            if (error) console.error('Error marking as auto-learned:', error);
+            else console.log(`[useErrorTracking] Learned/Hidden ${count} record(s)`);
         } catch (error) {
             console.error('Error marking as auto-learned:', error);
         }
@@ -142,13 +145,13 @@ export function useErrorTracking() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            console.log(`[useErrorTracking] Ignoring error pattern: "${errorPattern}" -> "${correction}"`);
+            console.log(`[useErrorTracking] Deleting record for pattern: "${errorPattern.slice(0, 30)}..."`);
 
             const { error, count } = await supabase
                 .from('learning_stats')
                 .delete({ count: 'exact' })
                 .eq('user_id', user.id)
-                .eq('error_pattern', errorPattern) // Use exact match from DB
+                .eq('error_pattern', errorPattern)
                 .eq('correction', correction);
 
             if (error) {
