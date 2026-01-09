@@ -460,11 +460,29 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "coma": ",",
     "dos puntos": ":",
     "punto y coma": ";",
+    "comillas": '"',
     "nuevo párrafo": "\n",
     "nueva línea": "\n",
     "abrir paréntesis": "(",
     "cerrar paréntesis": ")",
     "comillas": '"',
+
+    // === FARMACOLOGÍA Y CONTRASTES (Quality 9.2) ===
+    "iohexol": "iohexol",
+    "iopamidol": "iopamidol",
+    "iomeprol": "iomeprol",
+    "iodixanol": "iodixanol",
+    "gadobutrol": "gadobutrol",
+    "gadoterato": "gadoterato",
+    "gadoxetato": "gadoxetato",
+    "primovist": "Primovist",
+    "buscapina": "Buscapina",
+    "hioscina": "hioscina",
+    "primperan": "Primperan",
+    "metoclopramida": "metoclopramida",
+    "glucagón": "glucagón",
+    "furosemida": "furosemida",
+    "seguril": "Seguril",
 };
 
 // Medical hints for Web Speech API - palabras que usa frecuentemente
@@ -508,5 +526,9 @@ export const RADIOLOGY_HINTS = [
     "pancreatitis", "pseudoquiste", "IPMN", "angiomiolipoma",
     "pielonefritis", "apendicitis", "diverticulitis", "Crohn",
     "vólvulo", "hernia", "ascitis", "trabeculación",
-    "esófago", "cardias", "píloro", "Treitz", "íleon", "ciego", "sigma"
+    "esófago", "cardias", "píloro", "Treitz", "íleon", "ciego", "sigma",
+
+    // Farmacología y Contraste
+    "iohexol", "iopamidol", "gadobutrol", "gadoterato", "gadoxetato", "primovist",
+    "buscapina", "hioscina", "primperan", "metoclopramida", "glucagón", "furosemida", "seguril"
 ];

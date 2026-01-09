@@ -27,6 +27,23 @@ const SILENT_ERRORS: SilentError[] = [
     { pattern: 'eco genético', correction: 'ecogénico', type: 'spacing' },
     { pattern: 'eco génico', correction: 'ecogénico', type: 'spacing' },
 
+    // Anatomical Prefixes (Quality 9.2)
+    { pattern: 'retro peritoneal', correction: 'retroperitoneal', type: 'spacing' },
+    { pattern: 'retro gástrico', correction: 'retrogástrico', type: 'spacing' },
+    { pattern: 'retro aórtico', correction: 'retroaórtico', type: 'spacing' },
+    { pattern: 'para aórtico', correction: 'paraaórtico', type: 'spacing' },
+    { pattern: 'para renal', correction: 'pararrenal', type: 'spacing' },
+    { pattern: 'infra hepático', correction: 'infrahepático', type: 'spacing' },
+    { pattern: 'supra hepático', correction: 'suprahepático', type: 'spacing' },
+    { pattern: 'infra esplénico', correction: 'infraesplénico', type: 'spacing' },
+    { pattern: 'supra esplénico', correction: 'supraesplénico', type: 'spacing' },
+    { pattern: 'peri pancreático', correction: 'peripancreático', type: 'spacing' },
+    { pattern: 'peri renal', correction: 'perirrenal', type: 'spacing' },
+    { pattern: 'peri vesi cular', correction: 'perivesicular', type: 'spacing' },
+    { pattern: 'peri portal', correction: 'periportal', type: 'spacing' },
+    { pattern: 'juxta renal', correction: 'yuxtarrenal', type: 'spacing' },
+    { pattern: 'yuxta renal', correction: 'yuxtarrenal', type: 'spacing' },
+
     // Compound word errors
     { pattern: 'bi rads', correction: 'BI-RADS', type: 'compound' },
     { pattern: 'vi rads', correction: 'VI-RADS', type: 'compound' },
@@ -37,8 +54,16 @@ const SILENT_ERRORS: SilentError[] = [
 
     // Common phonetic errors
     { pattern: 'eco genito', correction: 'ecogénico', type: 'spacing' },
-    { pattern: 'ipoecoico', correction: 'hipoecogénico', type: 'accent' },
-    { pattern: 'iperecoico', correction: 'hiperecogénico', type: 'accent' }
+    { pattern: 'ipoecoico', correction: 'hipoecoico', type: 'accent' },
+    { pattern: 'iperecoico', correction: 'hiperecoico', type: 'accent' },
+    { pattern: 'ipoecogénico', correction: 'hipoecogénico', type: 'accent' },
+    { pattern: 'iperecogénico', correction: 'hiperecogénico', type: 'accent' },
+
+    // Surgical Suffixes
+    { pattern: 'nefrec tomía', correction: 'nefrectomía', type: 'spacing' },
+    { pattern: 'colecis tectomía', correction: 'colecistectomía', type: 'spacing' },
+    { pattern: 'pancrea tectomía', correction: 'pancreatectomía', type: 'spacing' },
+    { pattern: 'esplenec tomía', correction: 'esplenectomía', type: 'spacing' },
 ];
 
 /**
