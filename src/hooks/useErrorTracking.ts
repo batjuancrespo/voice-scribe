@@ -78,6 +78,7 @@ export function useErrorTracking() {
                 .from('learning_stats')
                 .select('*')
                 .eq('user_id', user.id)
+                .eq('auto_learned', false) // Quality 8.6: Only show pending decisions
                 .order('frequency', { ascending: false })
                 .limit(limit);
 
@@ -141,15 +142,22 @@ export function useErrorTracking() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Delete from learning_stats so it disappears from the list
-            await supabase
+            console.log(`[useErrorTracking] Ignoring error pattern: "${errorPattern}" -> "${correction}"`);
+
+            const { error, count } = await supabase
                 .from('learning_stats')
-                .delete()
+                .delete({ count: 'exact' })
                 .eq('user_id', user.id)
-                .eq('error_pattern', errorPattern.toLowerCase().trim())
-                .eq('correction', correction.trim());
+                .eq('error_pattern', errorPattern) // Use exact match from DB
+                .eq('correction', correction);
+
+            if (error) {
+                console.error('Error ignoring error pattern:', error);
+            } else {
+                console.log(`[useErrorTracking] Deleted ${count} record(s)`);
+            }
         } catch (error) {
-            console.error('Error ignoring error pattern:', error);
+            console.error('Unexpected error in ignoreErrorPattern:', error);
         }
     }, []);
 
