@@ -163,36 +163,54 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
             }
         }
 
-        // Fuzzy Match (Quality 7.1: Calibrated thresholds)
-        if (cleanWord.length > 5) {
-            for (const [original, replacement] of fuzzyTargets) {
-                if (original.length > 5) {
-                    const distance = getLevenshteinDistance(cleanWord, original.toLowerCase());
+        // Quality 8.0: Ultra-Conservative Fuzzy Match
+        // 1. Min length: 6 (avoid short word noise)
+        // 2. High Conflict Pairs: never swap these
+        const HIGH_CONFLICT_PAIRS = new Set([
+            'anterior:interior', 'interior:anterior',
+            'superior:inferior', 'inferior:superior',
+            'medial:lateral', 'lateral:medial',
+            'normal:abnormal'
+        ]);
 
-                    // Quality 7.1: Stricter Thresholds
-                    // - 1 error for words up to 8 chars
-                    // - 2 errors for words up to 12 chars
-                    // - 3 errors ONLY for very long terms (> 12 chars)
-                    let threshold = 1;
-                    if (original.length > 12) threshold = 3;
-                    else if (original.length > 8) threshold = 2;
+        if (cleanWord.length >= 6) {
+            for (const [original, replacement] of fuzzyTargets) {
+                const targetLower = original.toLowerCase();
+                if (targetLower.length >= 6) {
+                    const distance = getLevenshteinDistance(cleanWord, targetLower);
+
+                    // Quality 8.0: Stricter Thresholds & Ratios
+                    // - Max distance: 3
+                    // - Ratio Check: Error cannot exceed 20% of word length (round down)
+                    //   Example: 6-9 chars: 1 err max | 10-14 chars: 2 err max | 15+ chars: 3 err max
+                    const maxAllowedByRatio = Math.floor(targetLower.length * 0.22);
+                    const threshold = Math.min(3, Math.max(1, maxAllowedByRatio));
 
                     // Substring Protection: If one is a substring of another and dist > 1, reject
-                    // This specifically fixes "densidad" (dist 3) matching "isodensidad"
-                    const isSub = original.toLowerCase().includes(cleanWord) || cleanWord.includes(original.toLowerCase());
+                    const isSub = targetLower.includes(cleanWord) || cleanWord.includes(targetLower);
                     const finalThreshold = (isSub && distance > 1) ? 1 : threshold;
 
+                    // Conflict Protection
+                    if (HIGH_CONFLICT_PAIRS.has(`${cleanWord}:${targetLower}`)) continue;
+
                     if (distance <= finalThreshold && distance > 0) {
-                        console.log(`[Fuzzy Total Match] "${cleanWord}" matches "${original}". Correcting to "${replacement}"`);
-                        const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
-                        const result = word.toLowerCase().replace(cleanWord, replacement);
-                        return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
+                        // Quality 8.0: PHONETIC VERIFICATION for dist > 1
+                        // If we are changing more than 1 letter, they MUST sound almost identical
+                        const soundsIdentical = getSpanishPhoneticCode(cleanWord) === getSpanishPhoneticCode(targetLower);
+
+                        if (distance === 1 || soundsIdentical) {
+                            console.log(`[Fuzzy Total Match] "${cleanWord}" matches "${original}". Correcting to "${replacement}"`);
+                            const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
+                            const result = word.toLowerCase().replace(cleanWord, replacement);
+                            return isUpper ? result.charAt(0).toUpperCase() + result.slice(1) : result;
+                        }
                     }
 
-                    // SECONDARY: Phonetic Match (Strict: only if length is similar)
-                    if (getSpanishPhoneticCode(cleanWord) === getSpanishPhoneticCode(original)) {
-                        const lenDiff = Math.abs(cleanWord.length - original.length);
-                        if (lenDiff <= 2) {
+                    // SECONDARY: Phonetic Match (Strict: only if length is very similar)
+                    if (getSpanishPhoneticCode(cleanWord) === getSpanishPhoneticCode(targetLower)) {
+                        const lenDiff = Math.abs(cleanWord.length - targetLower.length);
+                        // Only allow if length difference is very small (avoid "masa" -> "mesentérica" type errors)
+                        if (lenDiff <= 1) {
                             console.log(`[Phonetic Match] "${cleanWord}" sounds like "${original}". Correcting to "${replacement}"`);
                             const isUpper = word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase();
                             const result = word.toLowerCase().replace(cleanWord, replacement);
