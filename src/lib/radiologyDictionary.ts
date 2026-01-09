@@ -78,6 +78,12 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "inferior": "inferior",
     "medial": "medial",
     "lateral": "lateral",
+    "interior": "interior",
+    "exterior": "exterior",
+    "medio": "medio",
+    "media": "media",
+    "longitudinal": "longitudinal",
+    "transversal": "transversal",
 
     // Tamaños y Medidas (números romanos comunes en radiología)
     "milímetros": "mm",
@@ -486,7 +492,7 @@ export const RADIOLOGY_HINTS = [
 
     // Descriptores
     "normal", "patológico", "compatible", "sugestivo",
-    "bilateral", "unilateral", "heterogéneo", "homogéneo",
+    "bilateral", "unilateral", "heterogéneo", "homogéneo", "interior", "exterior", "medio", "longitudinal", "transversal", "superior", "inferior", "anterior", "posterior",
 
     // Medidas
     "milímetros", "centímetros",
