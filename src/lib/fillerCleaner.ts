@@ -10,12 +10,7 @@ export const MEDICAL_FILLER_WORDS = [
     "mmm",
     "digamos",
     "o sea",
-    "bueno",
-    "pues",
-    "entonces",
     "a ver...",
-    "ya que",
-    "verdad",
 ];
 
 export interface CleaningResult {
