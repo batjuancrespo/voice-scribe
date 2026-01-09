@@ -624,13 +624,13 @@ export function TranscriptionEditor() {
                             />
 
                             {showSettings && (
-                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+                                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
                                         <button
                                             onClick={() => setShowSettings(false)}
                                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            <X className="w-6 h-6" />
                                         </button>
                                         <VocabularySettings
                                             selectedText={getSelectedText()}
@@ -641,8 +641,8 @@ export function TranscriptionEditor() {
                             )}
 
                             {showTemplates && (
-                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
                                         <TemplateManager
                                             onClose={() => setShowTemplates(false)}
                                             onInsert={handleInsertTemplate}
