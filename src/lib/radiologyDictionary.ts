@@ -286,6 +286,15 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "ligamento falciforme": "ligamento falciforme",
     "ligamento venoso": "ligamento venoso",
     "porta hepatis": "porta hepatis",
+    "Wirsung": "Wirsung",
+    "Santorini": "Santorini",
+    "Vater": "Vater",
+    "Oddi": "Oddi",
+    "Heister": "Heister",
+    "Morrison": "Morrison",
+    "Douglas": "Douglas",
+    "Gerota": "Gerota",
+    "Bertin": "Bertin",
 
     // Vía Biliar
     "conducto hepático común": "conducto hepático común",
@@ -486,7 +495,7 @@ export const RADIOLOGY_HINTS = [
     "T1", "T2", "T3", "T4", "N1", "N2", "M0", "M1",
 
     // Abdominal Avanzado
-    "segmento", "caudado", "Wirsung", "cístico", "colédoco",
+    "segmento", "caudado", "Wirsung", "Santorini", "Vater", "Oddi", "Heister", "Morrison", "Douglas", "Gerota", "Bertin", "cístico", "colédoco",
     "suprarrenal", "Gerota", "Morrison", "Douglas", "mesenterio",
     "tronco celíaco", "mesentérica", "porta", "suprahepática",
     "esteatosis", "cirrosis", "hemangioma", "colelitiasis",
