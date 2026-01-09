@@ -13,6 +13,7 @@ export interface CorrectionRecord {
 }
 
 export interface LearningStat {
+    id: string; // Quality 8.6: Use UUID for robust matching
     errorPattern: string;
     correction: string;
     frequency: number;
@@ -88,6 +89,7 @@ export function useErrorTracking() {
             }
 
             return data.map(stat => ({
+                id: stat.id,
                 errorPattern: stat.error_pattern,
                 correction: stat.correction,
                 frequency: stat.frequency,
@@ -121,7 +123,7 @@ export function useErrorTracking() {
         }
     }, []);
 
-    const markAsAutoLearned = useCallback(async (errorPattern: string, correction: string) => {
+    const markAsAutoLearned = useCallback(async (statId: string) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -129,35 +131,31 @@ export function useErrorTracking() {
             const { error, count } = await supabase
                 .from('learning_stats')
                 .update({ auto_learned: true })
-                .eq('user_id', user.id)
-                .eq('error_pattern', errorPattern)
-                .eq('correction', correction);
+                .eq('id', statId)
+                .eq('user_id', user.id);
 
             if (error) console.error('Error marking as auto-learned:', error);
-            else console.log(`[useErrorTracking] Learned/Hidden ${count} record(s)`);
+            else console.log(`[useErrorTracking] Learned/Hidden record ${statId}, count: ${count}`);
         } catch (error) {
             console.error('Error marking as auto-learned:', error);
         }
     }, []);
 
-    const ignoreErrorPattern = useCallback(async (errorPattern: string, correction: string) => {
+    const ignoreErrorPattern = useCallback(async (statId: string) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            console.log(`[useErrorTracking] Deleting record for pattern: "${errorPattern.slice(0, 30)}..."`);
-
             const { error, count } = await supabase
                 .from('learning_stats')
                 .delete({ count: 'exact' })
-                .eq('user_id', user.id)
-                .eq('error_pattern', errorPattern)
-                .eq('correction', correction);
+                .eq('id', statId)
+                .eq('user_id', user.id);
 
             if (error) {
                 console.error('Error ignoring error pattern:', error);
             } else {
-                console.log(`[useErrorTracking] Deleted ${count} record(s)`);
+                console.log(`[useErrorTracking] Deleted record ${statId}, count: ${count}`);
             }
         } catch (error) {
             console.error('Unexpected error in ignoreErrorPattern:', error);

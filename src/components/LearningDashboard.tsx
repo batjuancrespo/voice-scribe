@@ -49,9 +49,9 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
         }
     };
 
-    const handleAutoLearn = async (pattern: string, correction: string) => {
+    const handleAutoLearn = async (statId: string, pattern: string, correction: string) => {
         // 1. Mark as learned in stats (for UI/tracking)
-        await markAsAutoLearned(pattern, correction);
+        await markAsAutoLearned(statId);
 
         // 2. Actually add to personal dictionary (for real automation)
         await addReplacement(pattern, correction);
@@ -59,8 +59,8 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
         loadData(); // Reload to update UI
     };
 
-    const handleIgnore = async (pattern: string, correction: string) => {
-        await ignoreErrorPattern(pattern, correction);
+    const handleIgnore = async (statId: string) => {
+        await ignoreErrorPattern(statId);
         loadData(); // Reload to update list
     };
 
@@ -202,13 +202,13 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
                                             {!error.autoLearned && (
                                                 <div className="flex gap-2">
                                                     <button
-                                                        onClick={() => handleAutoLearn(error.errorPattern, error.correction)}
+                                                        onClick={() => handleAutoLearn(error.id, error.errorPattern, error.correction)}
                                                         className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 transition-colors"
                                                     >
                                                         Auto-aprender
                                                     </button>
                                                     <button
-                                                        onClick={() => handleIgnore(error.errorPattern, error.correction)}
+                                                        onClick={() => handleIgnore(error.id)}
                                                         className="text-xs px-3 py-1.5 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                                                         title="Hace desaparecer este elemento de la lista"
                                                     >
