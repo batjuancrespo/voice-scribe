@@ -194,7 +194,7 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     Correcciones guardadas ({Object.entries(replacements).length})
                 </h3>
-                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-2 pb-24">
                     {Object.entries(replacements).length === 0 && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-8">
                             No hay correcciones guardadas.
