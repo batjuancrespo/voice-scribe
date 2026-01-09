@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { BarChart, TrendingUp, AlertTriangle, Zap, CheckCircle2, X } from 'lucide-react';
 import { useLearningStats, WeeklyProgress, GlobalStats } from '@/hooks/useLearningStats';
 import { useErrorTracking, LearningStat } from '@/hooks/useErrorTracking';
+import { useVocabulary } from '@/hooks/useVocabulary';
 
 interface LearningDashboardProps {
     isOpen: boolean;
@@ -12,7 +13,8 @@ interface LearningDashboardProps {
 
 export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
     const { getWeeklyProgress, getGlobalStats, getMostUsedTerms } = useLearningStats();
-    const { getFrequentErrors, markAsAutoLearned } = useErrorTracking();
+    const { getFrequentErrors, markAsAutoLearned, ignoreErrorPattern } = useErrorTracking();
+    const { addReplacement } = useVocabulary();
 
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([]);
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
@@ -48,8 +50,18 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
     };
 
     const handleAutoLearn = async (pattern: string, correction: string) => {
+        // 1. Mark as learned in stats (for UI/tracking)
         await markAsAutoLearned(pattern, correction);
+
+        // 2. Actually add to personal dictionary (for real automation)
+        await addReplacement(pattern, correction);
+
         loadData(); // Reload to update UI
+    };
+
+    const handleIgnore = async (pattern: string, correction: string) => {
+        await ignoreErrorPattern(pattern, correction);
+        loadData(); // Reload to update list
     };
 
     if (!isOpen) return null;
@@ -188,12 +200,21 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
                                                 </div>
                                             </div>
                                             {!error.autoLearned && (
-                                                <button
-                                                    onClick={() => handleAutoLearn(error.errorPattern, error.correction)}
-                                                    className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 transition-colors"
-                                                >
-                                                    Auto-aprender
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleAutoLearn(error.errorPattern, error.correction)}
+                                                        className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 transition-colors"
+                                                    >
+                                                        Auto-aprender
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleIgnore(error.errorPattern, error.correction)}
+                                                        className="text-xs px-3 py-1.5 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                        title="Hace desaparecer este elemento de la lista"
+                                                    >
+                                                        Rechazar
+                                                    </button>
+                                                </div>
                                             )}
                                             {error.autoLearned && (
                                                 <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg">

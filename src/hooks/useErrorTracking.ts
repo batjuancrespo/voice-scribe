@@ -136,10 +136,28 @@ export function useErrorTracking() {
         }
     }, []);
 
+    const ignoreErrorPattern = useCallback(async (errorPattern: string, correction: string) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Delete from learning_stats so it disappears from the list
+            await supabase
+                .from('learning_stats')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('error_pattern', errorPattern.toLowerCase().trim())
+                .eq('correction', correction.trim());
+        } catch (error) {
+            console.error('Error ignoring error pattern:', error);
+        }
+    }, []);
+
     return {
         logCorrection,
         getFrequentErrors,
         shouldSuggestLearning,
-        markAsAutoLearned
+        markAsAutoLearned,
+        ignoreErrorPattern
     };
 }

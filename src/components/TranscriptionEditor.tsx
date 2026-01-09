@@ -20,7 +20,7 @@ import { CorrectionReviewModal } from './CorrectionReviewModal';
 import { LearningDashboard } from './LearningDashboard';
 import { TrainingMode } from './TrainingMode';
 import { Mic, Square, Trash2, Copy, Check, Settings, Sparkles, Wand2, LogOut, LayoutTemplate, MessageSquare, AlertTriangle, BookPlus, X, Sun, Moon, FileText, Book, TrendingUp, Target } from 'lucide-react';
-import { computeDiff } from '@/lib/diffUtils';
+import { computeDiff, extractCorrectionPairs } from '@/lib/diffUtils';
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -310,22 +310,21 @@ export function TranscriptionEditor() {
     const handleApplyReview = (finalText: string) => {
         const originalText = reviewData?.original || '';
 
-        // Implicit Learning: Find differences and save them automatically if they are clear corrections
+        // Implicit Learning (Quality 8.4): Precise n-gram extraction
         if (originalText && finalText !== originalText) {
             const diff = computeDiff(originalText, finalText);
-            const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 0);
-            const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 0);
+            const corrections = extractCorrectionPairs(diff);
 
-            // N-Gram Learning (Sprint 4): Capture phrase corrections
-            if (removed.length > 0 && added.length > 0 && removed.length <= 3 && added.length <= 3) {
-                const orig = removed.join(' ').toLowerCase();
-                const repl = added.join(' ');
+            corrections.forEach(({ original: orig, replacement: repl }) => {
+                // Only learn short, meaningful phrases (max 4 words) to avoid AI rewrite noise
+                const wordCountOrig = orig.split(/\s+/).length;
+                const wordCountRepl = repl.split(/\s+/).length;
 
-                if (orig !== repl.toLowerCase()) {
-                    console.log(`[Auto-Learning Phrase] From AI Review: "${orig}" -> "${repl}"`);
-                    addReplacement(orig, repl);
+                if (wordCountOrig <= 4 && wordCountRepl <= 4) {
+                    console.log(`[Auto-Learning Phrase] Precise Match: "${orig}" -> "${repl}"`);
+                    addReplacement(orig.toLowerCase(), repl);
                 }
-            }
+            });
         }
 
         setFullText(finalText);
