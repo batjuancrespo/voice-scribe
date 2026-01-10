@@ -86,10 +86,10 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
                     <div className="flex flex-col">
                         <h2 className="text-2xl font-black text-white flex items-center gap-3 uppercase tracking-tighter italic">
                             <TrendingUp className="w-6 h-6 text-[var(--accent)]" />
-                            Analytics <span className="text-[var(--accent)]">Engine</span>
+                            Motor <span className="text-[var(--accent)]">Analítico</span>
                         </h2>
                         <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                            Learning Progress • Neural Network Status
+                            Progreso de Aprendizaje • Estado de Red Neuronal
                         </span>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">

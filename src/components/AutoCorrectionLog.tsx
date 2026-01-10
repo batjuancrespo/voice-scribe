@@ -42,10 +42,10 @@ export function AutoCorrectionLogModal({ isOpen, onClose }: AutoCorrectionLogPro
                         <div className="flex flex-col">
                             <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2">
                                 <Check className="w-6 h-6 text-[var(--accent)]" />
-                                Sentinel <span className="text-[var(--accent)]">Auto-Fix</span>
+                                Auto-Corrección <span className="text-[var(--accent)]">Sentinel</span>
                             </h2>
                             <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                                Autonomous Intelligence Logs • Bat-Computer
+                                Registros de Inteligencia Autónoma • Bat-Computadora
                             </span>
                         </div>
                         <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">

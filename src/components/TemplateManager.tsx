@@ -135,10 +135,10 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                 <div className="flex flex-col">
                     <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2 text-white">
                         <FileText className="w-6 h-6 text-[var(--accent)]" />
-                        Tactical <span className="text-[var(--accent)]">Templates</span>
+                        Plantillas <span className="text-[var(--accent)]">Tácticas</span>
                     </h2>
                     <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                        Predefined Ops • Gotham Unit
+                        Ops Predefinidas • Unidad Gotham
                     </span>
                 </div>
 

@@ -124,10 +124,10 @@ export function TrainingMode({
                         <div className="flex flex-col">
                             <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2">
                                 <Target className="w-6 h-6 text-[var(--accent)]" />
-                                Combat <span className="text-[var(--accent)]">Training</span>
+                                Entrenamiento de <span className="text-[var(--accent)]">Combate</span>
                             </h2>
                             <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                                Voice Recognition Optimization • VR Simulation
+                                Optimización de Reconocimiento de Voz • Simulación RV
                             </span>
                         </div>
                         <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
@@ -157,12 +157,12 @@ export function TrainingMode({
                                 {isGenerating ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Accessing Scenarios...
+                                        Accediendo a Escenarios...
                                     </>
                                 ) : (
                                     <>
                                         <Play className="w-5 h-5" />
-                                        Initialize Simulation
+                                        Inicializar Simulación
                                     </>
                                 )}
                             </button>
