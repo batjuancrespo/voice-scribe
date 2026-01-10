@@ -154,31 +154,34 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
     }, [fields]);
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex flex-col h-full bg-transparent overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">{templateName}</h2>
-                    <div className="flex space-x-3 text-xs mt-1">
-                        <span className="text-gray-500">{stats.total} campos</span>
-                        <span className="text-green-600 dark:text-green-400 font-medium">{stats.normal} normales</span>
-                        <span className="text-amber-600 dark:text-amber-400 font-medium">{stats.edited} patológicos</span>
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-gray-900 to-indigo-950">
+                <div className="flex flex-col">
+                    <h2 className="text-lg font-black text-white uppercase tracking-tighter italic flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-[var(--accent)]" />
+                        Tactical <span className="text-[var(--accent)]">Entry</span>: {templateName}
+                    </h2>
+                    <div className="flex space-x-3 text-[10px] font-bold tracking-[0.1em] text-[var(--accent)] uppercase opacity-80 mt-1">
+                        <span>{stats.total} SECTORS</span>
+                        <span className="text-green-500">{stats.normal} NOMINAL</span>
+                        <span className="text-amber-500">{stats.edited} ANOMALIES</span>
                     </div>
                 </div>
                 <button
                     onClick={onCancel}
-                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
                 >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-white" />
                 </button>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
                 {Object.entries(sections).map(([section, sectionFields]) => (
                     <div key={section}>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{section}</h3>
-                        <div className="space-y-3">
+                        <h3 className="text-xs font-black text-[var(--accent)] uppercase tracking-[0.2em] mb-4 opacity-60 border-l-2 border-[var(--accent)] pl-2">{section}</h3>
+                        <div className="space-y-4">
                             {sectionFields
                                 .sort((a, b) => a.displayOrder - b.displayOrder)
                                 .map(field => {
@@ -191,29 +194,29 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                             onClick={() => handleFieldClick(field.id)}
                                             onContextMenu={(e) => handleContextMenu(e, field.id)}
                                             className={`
-                                                relative p-4 rounded-xl border-2 transition-all cursor-pointer group
+                                                relative p-5 rounded-xl border-2 transition-all cursor-pointer group
                                                 ${isActive
-                                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-lg ring-2 ring-red-200 dark:ring-red-900'
+                                                    ? 'border-[var(--accent)] bg-[var(--accent)]/10 shadow-[0_0_20px_rgba(234,179,8,0.1)] ring-1 ring-[var(--accent)]/50'
                                                     : isEdited
-                                                        ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
-                                                        : 'border-green-200 dark:border-green-800 bg-white dark:bg-gray-800 hover:border-green-400 dark:hover:border-green-600'
+                                                        ? 'border-amber-500/50 bg-amber-500/5'
+                                                        : 'border-white/5 bg-white/5 hover:border-white/20'
                                                 }
                                             `}
                                         >
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className={`text-sm font-bold ${isActive ? 'text-red-700 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-[var(--accent)]' : 'text-white/60'}`}>
                                                     {field.fieldName}
                                                 </span>
                                                 <div className="flex items-center space-x-2">
                                                     {isActive && (
-                                                        <span className="animate-pulse flex items-center text-red-600 text-xs font-bold">
-                                                            <Mic className="w-3 h-3 mr-1" /> GRABANDO
+                                                        <span className="animate-pulse flex items-center text-[var(--accent)] text-[10px] font-black tracking-tighter">
+                                                            <Mic className="w-3 h-3 mr-1" /> ANALYZING AUDIO
                                                         </span>
                                                     )}
                                                     {isEdited && !isActive && (
                                                         <button
                                                             onClick={(e) => handleFieldReset(e, field.id)}
-                                                            className="p-1 hover:bg-white/50 rounded text-amber-600 hover:text-amber-800"
+                                                            className="p-1 hover:bg-white/10 rounded text-amber-500 transition-colors"
                                                             title="Restaurar normalidad"
                                                         >
                                                             <RotateCcw className="w-4 h-4" />
@@ -222,7 +225,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                                 </div>
                                             </div>
 
-                                            <div className={`text-sm leading-relaxed ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                                            <div className={`text-sm leading-relaxed font-medium ${isActive ? 'text-white' : 'text-white/80'}`}>
                                                 {field.isEdited ? (
                                                     <span>{field.currentText}</span>
                                                 ) : (
@@ -238,7 +241,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                                                 return (
                                                                     <span
                                                                         key={idx}
-                                                                        className="inline-flex items-center mx-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/50 select-none transition-colors text-xs font-semibold"
+                                                                        className="inline-flex items-center mx-1 px-2 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)] cursor-pointer hover:bg-[var(--accent)]/30 border border-[var(--accent)]/30 select-none transition-colors text-[10px] font-black uppercase tracking-tighter"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             const currentIndex = options.indexOf(selectedValue);
@@ -256,12 +259,12 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                                     </>
                                                 )}
                                                 {isActive && interimResult && (
-                                                    <span className="text-gray-400 italic ml-1">{interimResult}</span>
+                                                    <span className="text-[var(--accent)]/50 italic ml-1">{interimResult}</span>
                                                 )}
                                             </div>
 
                                             {/* Status Indicator Bar */}
-                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${isActive ? 'bg-red-500' : isEdited ? 'bg-amber-400' : 'bg-green-400'
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${isActive ? 'bg-[var(--accent)]' : isEdited ? 'bg-amber-500' : 'bg-green-500/30'
                                                 }`} />
                                         </div>
                                     );
@@ -272,21 +275,21 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
             </div>
 
             {/* Footer Actions */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex justify-end space-x-3">
+            <div className="p-6 border-t border-white/10 bg-black/40 backdrop-blur-xl flex justify-end items-center space-x-4 shrink-0 shadow-2xl">
                 {isListening && (
                     <button
                         onClick={handleStopGlobal}
-                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center font-medium animate-pulse"
+                        className="px-6 py-3 bg-red-600/20 text-red-500 border border-red-500/50 rounded-xl hover:bg-red-600/30 flex items-center font-black uppercase tracking-widest animate-pulse"
                     >
-                        <Square className="w-4 h-4 mr-2" /> Detener Grabación
+                        <Square className="w-5 h-5 mr-3" /> STOP SENSOR
                     </button>
                 )}
                 <button
                     onClick={() => onComplete(generateReport())}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg flex items-center font-bold"
+                    className="px-8 py-4 bg-[var(--accent)] text-black rounded-xl hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(234,179,8,0.3)] flex items-center font-black uppercase tracking-widest transition-all"
                 >
-                    <Check className="w-5 h-5 mr-2" />
-                    Finalizar Informe
+                    <Check className="w-6 h-6 mr-3" />
+                    Finalize Report
                 </button>
             </div>
             {/* Context Menu */}

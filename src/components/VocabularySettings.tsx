@@ -116,10 +116,10 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
     };
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-2xl">
-            <h2 className="text-2xl font-bold mb-6 flex items-center text-gray-800 dark:text-gray-200">
-                <Book className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
-                Diccionario Personal
+        <div className="p-6">
+            <h2 className="text-2xl font-black mb-6 flex items-center text-gray-900 dark:text-white uppercase tracking-tighter italic">
+                <Book className="w-6 h-6 mr-3 text-[var(--accent)]" />
+                Medical Glossary <span className="text-[var(--accent)] ml-2">DB</span>
             </h2>
             <div className="space-y-6">
                 <div className="space-y-3">
@@ -182,10 +182,10 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                     <button
                         onClick={handleAdd}
                         disabled={!original || !replacement}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all shadow-lg flex items-center"
+                        className="px-6 py-4 bg-[var(--accent)] text-black rounded-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] flex items-center"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
-                        {editingEntry ? 'Actualizar' : (onCorrect ? 'Añadir y aplicar al texto' : 'Añadir')}
+                        <Plus className="w-5 h-5 mr-2" />
+                        {editingEntry ? 'Update Entry' : (onCorrect ? 'Commit & Fix' : 'Commit Entry')}
                     </button>
                 </div>
             </div>

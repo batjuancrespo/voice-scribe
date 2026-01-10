@@ -116,22 +116,24 @@ export function TrainingMode({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col border border-gray-100 dark:border-gray-800">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
+            <div className="glass-card rounded-2xl shadow-2xl max-w-3xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 overflow-hidden my-4">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white rounded-t-2xl">
+                <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-6 text-white border-b border-white/10 shrink-0">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Target className="w-6 h-6" />
-                            Modo Entrenamiento
-                        </h2>
-                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+                        <div className="flex flex-col">
+                            <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2">
+                                <Target className="w-6 h-6 text-[var(--accent)]" />
+                                Combat <span className="text-[var(--accent)]">Training</span>
+                            </h2>
+                            <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                                Voice Recognition Optimization • VR Simulation
+                            </span>
+                        </div>
+                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
-                    <p className="text-indigo-100 text-sm mt-2">
-                        Dicta cada término médico para mejorar el reconocimiento de voz
-                    </p>
                 </div>
 
                 {/* Body */}
@@ -150,17 +152,17 @@ export function TrainingMode({
                             <button
                                 onClick={handleStart}
                                 disabled={isGenerating}
-                                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 shadow-lg flex items-center gap-2 mx-auto disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="px-10 py-4 bg-[var(--accent)] text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-yellow-500/20 flex items-center gap-2 mx-auto disabled:opacity-70 disabled:cursor-not-allowed border-2 border-black/10"
                             >
                                 {isGenerating ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Generando Sesión...
+                                        Accessing Scenarios...
                                     </>
                                 ) : (
                                     <>
                                         <Play className="w-5 h-5" />
-                                        Iniciar Entrenamiento
+                                        Initialize Simulation
                                     </>
                                 )}
                             </button>

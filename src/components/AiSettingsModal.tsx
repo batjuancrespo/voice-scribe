@@ -81,87 +81,83 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 dark:border-gray-800">
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
+            <div className="glass-card rounded-2xl max-w-md w-full border border-white/10 shadow-2xl my-8">
+                <div className="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 text-white border-b border-white/10 shrink-0">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-2">
-                            <Sparkles className="w-6 h-6" />
-                            <h2 className="text-xl font-bold">Configuración IA</h2>
+                            <Sparkles className="w-6 h-6 text-[var(--accent)]" />
+                            <div className="flex flex-col">
+                                <h2 className="text-xl font-black uppercase tracking-tighter italic">AI Config</h2>
+                                <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">Encryption Module</span>
+                            </div>
                         </div>
-                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
-                    <p className="text-purple-100 text-sm mt-2">
-                        Configura Google Gemini para potenciar tus dictados.
-                    </p>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-8 space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Key className="w-4 h-4 mr-1.5 text-purple-600" />
-                            Google Gemini API Key
+                        <label className="block text-sm font-bold text-[var(--accent)] uppercase tracking-widest mb-2 flex items-center opacity-80">
+                            <Key className="w-4 h-4 mr-1.5" />
+                            Security Key
                         </label>
                         <div className="relative">
                             <input
                                 type={isVisible ? "text" : "password"}
-                                className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-gray-50 dark:bg-gray-800 dark:text-white"
-                                placeholder="Opcional si configurada en Vercel/Servidor"
+                                className="w-full pl-4 pr-12 py-4 border border-white/10 rounded-xl focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none bg-black/40 text-white font-mono text-sm shadow-inner"
+                                placeholder="..."
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                             />
                             <button
                                 type="button"
                                 onClick={() => setIsVisible(!isVisible)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-medium"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-[var(--accent)] text-[10px] font-black tracking-widest"
                             >
-                                {isVisible ? 'OCULTAR' : 'MOSTRAR'}
+                                {isVisible ? 'HIDE' : 'SHOW'}
                             </button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                            Si has configurado <code>GEMINI_API_KEY</code> en Vercel, puedes dejar esto vacío.
+                        <p className="text-[10px] text-white/40 mt-2 font-bold uppercase tracking-widest">
+                            Required if GEMINI_API_KEY is not defined in system.
                         </p>
                     </div>
 
                     <div>
                         <div className="flex justify-between items-center mb-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                                <Sparkles className="w-4 h-4 mr-1.5 text-purple-600" />
-                                Modelo de IA
+                            <label className="text-sm font-bold text-[var(--accent)] uppercase tracking-widest flex items-center opacity-80">
+                                <Sparkles className="w-4 h-4 mr-1.5" />
+                                Neural Engine
                             </label>
                             <button
                                 onClick={() => fetchModels(apiKey)}
                                 disabled={isLoadingModels || !apiKey}
-                                className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center"
+                                className="text-[10px] text-[var(--accent)] hover:underline font-black tracking-widest flex items-center"
                             >
                                 <RefreshCw className={twMerge("w-3 h-3 mr-1", isLoadingModels && "animate-spin")} />
-                                {isLoadingModels ? 'Cargando...' : 'Actualizar lista'}
+                                {isLoadingModels ? 'SYNCING...' : 'SYNC LIST'}
                             </button>
                         </div>
                         <select
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
-                            className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-gray-50 dark:bg-gray-800 dark:text-white"
+                            className="w-full px-4 py-4 border border-white/10 rounded-xl focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none bg-black/40 text-white font-bold"
                         >
                             {availableModels.map(m => (
-                                <option key={m.id} value={m.id}>{m.name}</option>
+                                <option key={m.id} value={m.id} className="bg-gray-900">{m.name}</option>
                             ))}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">
-                            Si no ves modelos, asegúrate de que tu API Key sea válida (aquí o en servidor).
-                        </p>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="pt-4 pb-2">
                         <button
                             onClick={handleSave}
-                            // Button is always enabled now to allow saving model preference even without local key
-                            className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-all shadow-lg flex justify-center items-center"
+                            className="w-full py-5 bg-[var(--accent)] text-black rounded-xl hover:scale-[1.02] active:scale-[0.98] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(234,179,8,0.4)] flex justify-center items-center"
                         >
-                            <Save className="w-4 h-4 mr-2" />
-                            Guardar Configuración
+                            <Save className="w-6 h-6 mr-3" />
+                            Initialize Core
                         </button>
                     </div>
                 </div>

@@ -79,19 +79,21 @@ export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
     const maxDailyCorrections = Math.max(...weeklyProgress.map(d => d.corrections + d.autoCorrections), 1);
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full h-[90vh] flex flex-col border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
+            <div className="glass-card rounded-2xl shadow-2xl max-w-6xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 overflow-hidden my-4">
                 {/* Header */}
-                <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <TrendingUp className="w-6 h-6 text-blue-600" />
-                            Panel de Aprendizaje
+                <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-6 border-b border-white/10 flex justify-between items-center shrink-0">
+                    <div className="flex flex-col">
+                        <h2 className="text-2xl font-black text-white flex items-center gap-3 uppercase tracking-tighter italic">
+                            <TrendingUp className="w-6 h-6 text-[var(--accent)]" />
+                            Analytics <span className="text-[var(--accent)]">Engine</span>
                         </h2>
-                        <p className="text-gray-500 text-sm mt-1">Estadísticas y progreso de tu asistente de IA</p>
+                        <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                            Learning Progress • Neural Network Status
+                        </span>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <X className="w-6 h-6 text-gray-500" />
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <X className="w-6 h-6 text-white" />
                     </button>
                 </div>
 

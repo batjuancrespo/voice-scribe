@@ -130,12 +130,17 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-                <h2 className="text-xl font-bold flex items-center text-gray-800 dark:text-gray-200">
-                    <FileText className="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" />
-                    Plantillas
-                </h2>
+        <div className="glass-card rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[85vh] max-h-[95vh] border border-white/10 my-4">
+            <header className="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-gray-900 to-indigo-950 shrink-0">
+                <div className="flex flex-col">
+                    <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2 text-white">
+                        <FileText className="w-6 h-6 text-[var(--accent)]" />
+                        Tactical <span className="text-[var(--accent)]">Templates</span>
+                    </h2>
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                        Predefined Ops • Gotham Unit
+                    </span>
+                </div>
 
                 {/* Filter Toggle */}
                 <div className="flex space-x-1 bg-white/50 dark:bg-black/20 p-1 rounded-lg mx-4">

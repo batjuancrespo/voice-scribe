@@ -658,11 +658,11 @@ export function TranscriptionEditor() {
                             />
 
                             {showSettings && (
-                                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                                    <div className="glass-card rounded-2xl max-w-3xl w-full relative animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl">
                                         <button
                                             onClick={() => setShowSettings(false)}
-                                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                            className="absolute top-4 right-4 text-white/50 hover:text-[var(--accent)] z-10 p-2 hover:bg-white/10 rounded-lg transition-colors"
                                         >
                                             <X className="w-6 h-6" />
                                         </button>
@@ -676,13 +676,11 @@ export function TranscriptionEditor() {
 
                             {showTemplates && (
                                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
-                                        <TemplateManager
-                                            onClose={() => setShowTemplates(false)}
-                                            onInsert={handleInsertTemplate}
-                                            onInsertStructured={handleOpenStructuredTemplate}
-                                        />
-                                    </div>
+                                    <TemplateManager
+                                        onClose={() => setShowTemplates(false)}
+                                        onInsert={handleInsertTemplate}
+                                        onInsertStructured={handleOpenStructuredTemplate}
+                                    />
                                 </div>
                             )}
 

@@ -103,35 +103,24 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full h-[80vh] flex flex-col border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
+            <div className="glass-card rounded-2xl max-w-4xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden my-4">
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white shrink-0">
+                <div className="bg-gradient-to-r from-purple-900 to-indigo-950 p-6 text-white shrink-0 border-b border-white/10">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Check className="w-6 h-6" />
-                            Revisar Cambios
-                        </h2>
-                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+                        <div className="flex flex-col">
+                            <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-3">
+                                <Check className="w-6 h-6 text-[var(--accent)]" />
+                                Review Tactical <span className="text-[var(--accent)]">Changes</span>
+                            </h2>
+                            <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                                AI Analytical Correction • QA Verify
+                            </span>
+                        </div>
+                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                             <X className="w-6 h-6" />
                         </button>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                        <p className="text-purple-100 text-sm">
-                            Pulsa sobre los textos marcados para <strong>rechazar</strong> o <strong>aceptar</strong> los cambios de la IA.
-                        </p>
-                        {confidence !== undefined && (
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${confidence >= 0.9 ? 'bg-green-500/20 text-green-100' :
-                                    confidence >= 0.7 ? 'bg-yellow-500/20 text-yellow-100' :
-                                        'bg-orange-500/20 text-orange-100'
-                                }`}>
-                                {confidence >= 0.9 ? '🎯 Alta confianza' :
-                                    confidence >= 0.7 ? '⚠️ Confianza media' :
-                                        '🔍 Revisa con cuidado'}
-                                {' '}({Math.round(confidence * 100)}%)
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -211,10 +200,10 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                     </button>
                     <button
                         onClick={handleApply}
-                        className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/20 flex items-center gap-2"
+                        className="px-8 py-3 bg-[var(--accent)] text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-yellow-500/20 flex items-center gap-3"
                     >
                         <Check className="w-5 h-5" />
-                        Aplicar Cambios
+                        Execute Protocol
                     </button>
                 </div>
             </div>

@@ -34,22 +34,24 @@ export function AutoCorrectionLogModal({ isOpen, onClose }: AutoCorrectionLogPro
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col border border-gray-100 dark:border-gray-800">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
+            <div className="glass-card rounded-2xl shadow-2xl max-w-2xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 overflow-hidden my-4">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white rounded-t-2xl">
+                <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-6 text-white border-b border-white/10 shrink-0">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Check className="w-6 h-6" />
-                            Correcciones Automáticas
-                        </h2>
-                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+                        <div className="flex flex-col">
+                            <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2">
+                                <Check className="w-6 h-6 text-[var(--accent)]" />
+                                Sentinel <span className="text-[var(--accent)]">Auto-Fix</span>
+                            </h2>
+                            <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                                Autonomous Intelligence Logs • Bat-Computer
+                            </span>
+                        </div>
+                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
-                    <p className="text-blue-100 text-sm mt-2">
-                        Correcciones aplicadas automáticamente hoy
-                    </p>
                 </div>
 
                 {/* Body */}
