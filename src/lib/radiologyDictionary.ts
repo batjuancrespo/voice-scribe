@@ -492,6 +492,51 @@ export const RADIOLOGY_DICTIONARY: Record<string, string> = {
     "receso lateral": "receso lateral",
     "platillos vertebrales": "platillos vertebrales",
     "hipertrofia de facetas": "hipertrofia facetaria",
+
+    // === TORACOABDOMINAL Y PÉLVICO (Quality 9.4) ===
+    // Hígado Pro (Segmentación y Vasos)
+    "vena suprahepática derecha": "vena suprahepática derecha",
+    "vena suprahepática media": "vena suprahepática media",
+    "vena suprahepática izquierda": "vena suprahepática izquierda",
+    "rama portal": "rama portal",
+    "rama portal derecha": "rama portal derecha",
+    "rama portal izquierda": "rama portal izquierda",
+    "cisura lobar principal": "cisura lobar principal",
+    "cisura interlobar": "cisura interlobar",
+
+    // Páncreas y Vía Biliar
+    "conducto pancreático principal": "Wirsung",
+    "colédoco distal": "colédoco distal",
+    "unión biliopancreática": "unión biliopancreática",
+
+    // Pelvis Técnica
+    "mesorrecto": "mesorrecto",
+    "fascia mesorrectal": "fascia mesorrectal",
+    "zona periférica": "zona periférica", // Próstata
+    "zona de transición": "zona de transición",
+    "zona central": "zona central",
+    "estroma fibromuscular": "estroma fibromuscular",
+    "base prostática": "base prostática",
+    "ápex prostático": "ápex prostático",
+
+    // Eco-Doppler
+    "flujo hepatópeto": "flujo hepatópeto",
+    "flujo hepatófugo": "flujo hepatófugo",
+    "índice de resistencia": "índice de resistencia",
+    "curva doppler": "curva Doppler",
+    "aliasing": "aliasing",
+
+    // TC Multicorte
+    "fase corticomedular": "fase corticomedular",
+    "fase nefrográfica": "fase nefrográfica",
+    "fase excretora": "fase excretora",
+    "realce en anillo": "realce en anillo",
+    "realce nodular": "realce nodular",
+
+    // RM Avanzada
+    "mapa ADC": "mapa ADC",
+    "señal intermedia": "señal intermedia",
+    "ausencia de señal": "ausencia de señal",
 };
 
 // Medical hints for Web Speech API - palabras que usa frecuentemente
@@ -544,5 +589,10 @@ export const RADIOLOGY_HINTS = [
     // Columna y Estadiaje
     "columna", "vértebra", "nivel", "disco", "foramen", "raquídeo", "módulo", "TNM",
     "LPD", "LPI", "LSM", "L1", "L2", "L3", "L4", "L5", "S1", "C1", "C2", "C3", "C4", "C5", "C6", "C7",
-    "T1", "T2", "T3", "T4", "N0", "N1", "N2", "M0", "M1"
+    "T1", "T2", "T3", "T4", "N0", "N1", "N2", "M0", "M1",
+
+    // Toracoabdominal y Pélvico
+    "suprahepática", "portal", "uncinado", "mesorrecto", "prostática", "Douglas",
+    "hepatópeto", "hepatófugo", "nefrográfica", "corticomedular", "excretora",
+    "ADC", "difusión", "restricción"
 ];

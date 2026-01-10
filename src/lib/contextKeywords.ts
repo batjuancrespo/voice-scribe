@@ -28,7 +28,8 @@ export const CONTEXT_DEFINITIONS: Record<string, ContextDefinition> = {
             'angiomiolipoma', 'quiste renal', 'bosniak', 'diverticulitis', 'apendicitis',
             'crohn', 'ileítis', 'adenopatías mesentéricas', 'útero en anteversión',
             'mioma', 'endometrio', 'quiste ovárico', 'folículo', 'próstata', 'zona periférica',
-            'hiperplasia benigna', 'vesículas seminales'
+            'hiperplasia benigna', 'vesículas seminales', 'fase nefrográfica', 'fase corticomedular',
+            'flujo hepatópeto', 'mesorrecto', 'fondo de saco de Douglas'
         ]
     },
     torax: {

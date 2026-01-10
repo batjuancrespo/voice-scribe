@@ -44,6 +44,23 @@ const SILENT_ERRORS: SilentError[] = [
     { pattern: 'juxta renal', correction: 'yuxtarrenal', type: 'spacing' },
     { pattern: 'yuxta renal', correction: 'yuxtarrenal', type: 'spacing' },
 
+    // Thoracoabdominal & Pelvic (Quality 9.4)
+    { pattern: 'supra hepática', correction: 'suprahepática', type: 'spacing' },
+    { pattern: 'supra hepáticas', correction: 'suprahepáticas', type: 'spacing' },
+    { pattern: 'infra renal', correction: 'infrarenal', type: 'spacing' },
+    { pattern: 'infra rrenal', correction: 'infrarenal', type: 'spacing' },
+    { pattern: 'intra abdominal', correction: 'intraabdominal', type: 'spacing' },
+    { pattern: 'peri umbilical', correction: 'periumbilical', type: 'spacing' },
+    { pattern: 'peri vesical', correction: 'perivesical', type: 'spacing' },
+    { pattern: 'peri uréteral', correction: 'periureteral', type: 'spacing' },
+    { pattern: 'fase nefro gráfica', correction: 'fase nefrográfica', type: 'spacing' },
+    { pattern: 'fase cortico medular', correction: 'fase corticomedular', type: 'spacing' },
+    { pattern: 'pancreato duodenal', correction: 'pancreatoduodenal', type: 'spacing' },
+    { pattern: 'espleno renal', correction: 'esplenorenal', type: 'spacing' },
+    { pattern: 'hepato renal', correction: 'hepatorenal', type: 'spacing' },
+    { pattern: 'meso rrecto', correction: 'mesorrecto', type: 'spacing' },
+    { pattern: 'fosa ilíaca', correction: 'fosa iliaca', type: 'accent' },
+
     // Compound word errors
     { pattern: 'bi rads', correction: 'BI-RADS', type: 'compound' },
     { pattern: 'vi rads', correction: 'VI-RADS', type: 'compound' },
