@@ -104,7 +104,7 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
-            <div className="glass-card rounded-2xl max-w-4xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden my-4">
+            <div className="glass-card rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden">
 
                 {/* Header */}
                 <div className="bg-gradient-to-r from-purple-900 to-indigo-950 p-6 text-white shrink-0 border-b border-white/10">

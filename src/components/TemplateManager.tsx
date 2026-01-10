@@ -130,7 +130,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     };
 
     return (
-        <div className="glass-card rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[85vh] max-h-[95vh] border border-white/10 my-4">
+        <div className="glass-card rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-white/10">
             <header className="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-gray-900 to-indigo-950 shrink-0">
                 <div className="flex flex-col">
                     <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-2 text-white">

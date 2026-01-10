@@ -658,8 +658,8 @@ export function TranscriptionEditor() {
                             />
 
                             {showSettings && (
-                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                                    <div className="glass-card rounded-2xl max-w-3xl w-full relative animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl">
+                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                                    <div className="glass-card rounded-2xl max-w-3xl w-full relative animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/10 shadow-2xl">
                                         <button
                                             onClick={() => setShowSettings(false)}
                                             className="absolute top-4 right-4 text-white/50 hover:text-[var(--accent)] z-10 p-2 hover:bg-white/10 rounded-lg transition-colors"

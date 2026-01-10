@@ -82,7 +82,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
-            <div className="glass-card rounded-2xl max-w-md w-full border border-white/10 shadow-2xl my-8">
+            <div className="glass-card rounded-2xl max-w-md w-full border border-white/10 shadow-2xl">
                 <div className="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 text-white border-b border-white/10 shrink-0">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-2">

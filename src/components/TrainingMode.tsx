@@ -117,7 +117,7 @@ export function TrainingMode({
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md overflow-y-auto">
-            <div className="glass-card rounded-2xl shadow-2xl max-w-3xl w-full h-[85vh] max-h-[95vh] flex flex-col border border-white/10 overflow-hidden my-4">
+            <div className="glass-card rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-white/10 overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-900 to-indigo-950 p-6 text-white border-b border-white/10 shrink-0">
                     <div className="flex justify-between items-center">
