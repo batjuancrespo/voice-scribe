@@ -290,14 +290,8 @@ export function TranscriptionEditor() {
     };
 
     const handleAiCorrection = async () => {
-        // const apiKey = localStorage.getItem('gemini_api_key');
-        // if (!apiKey) {
-        //     setShowAiSettings(true);
-        //     return;
-        // }
         // ALLOWING EMPTY API KEY to support Server-Side Environment Variable Fallback
         const apiKey = localStorage.getItem('gemini_api_key') || '';
-
         const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-001';
 
         if (!fullText.trim()) return;
@@ -347,7 +341,6 @@ export function TranscriptionEditor() {
             const corrections = extractCorrectionPairs(diff);
 
             corrections.forEach(({ original: orig, replacement: repl }) => {
-                // Only learn short, meaningful phrases (max 4 words) to avoid AI rewrite noise
                 const wordCountOrig = orig.split(/\s+/).length;
                 const wordCountRepl = repl.split(/\s+/).length;
 
@@ -408,16 +401,15 @@ export function TranscriptionEditor() {
                 }
             }
 
-            // Voice Command: Editing (Sprint 2)
+            // Voice Command: Editing
             if (processedText.toLowerCase().includes('borrar última palabra')) {
                 const parts = before.trimEnd().split(/\s+/);
                 if (parts.length > 0) {
                     parts.pop();
                     before = parts.join(' ');
-                    // Add back space if needed
                     if (before.length > 0) before += ' ';
                 }
-                processedText = ''; // Consume the command
+                processedText = '';
             } else if (processedText.toLowerCase().includes('borrar línea') || processedText.toLowerCase().includes('borrar párrafo')) {
                 const lines = before.split('\n');
                 if (lines.length > 0) {
@@ -425,11 +417,10 @@ export function TranscriptionEditor() {
                     before = lines.join('\n');
                     if (before.length > 0 && !before.endsWith('\n')) before += '\n';
                 }
-                processedText = ''; // Consume the command
+                processedText = '';
             } else if (processedText.toLowerCase().includes('deshacer dictado') || processedText.toLowerCase() === 'deshacer') {
-                // Restore previous text before this segment
                 setFullText(prevText);
-                return; // Stop processing this event
+                return;
             }
 
             if (/^[.,:;?!]/.test(processedText)) {
@@ -461,10 +452,8 @@ export function TranscriptionEditor() {
             setFullText(newText);
             setSelectionRange({ start: newPos, end: newPos });
 
-            // Reset the auto-change flag after react has processed it
             setTimeout(() => { isAutoChangeRef.current = false; }, 0);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastEvent]);
 
     // Sync DOM selection
@@ -499,53 +488,25 @@ export function TranscriptionEditor() {
                     </span>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title={darkMode ? "Modo claro" : "Modo oscuro"}
-                    >
+                    <button onClick={() => setDarkMode(!darkMode)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-gray-600" />}
                     </button>
-                    <button
-                        onClick={() => setShowTemplates(!showTemplates)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title="Plantillas"
-                    >
+                    <button onClick={() => setShowTemplates(!showTemplates)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
-                    <button
-                        onClick={() => setShowAiSettings(!showAiSettings)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title="Configuración IA"
-                    >
+                    <button onClick={() => setShowAiSettings(!showAiSettings)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </button>
-                    <button
-                        onClick={() => setShowDashboard(!showDashboard)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title="Panel de Aprendizaje"
-                    >
+                    <button onClick={() => setShowDashboard(!showDashboard)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </button>
-                    <button
-                        onClick={() => setShowTraining(!showTraining)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title="Modo Entrenamiento"
-                    >
+                    <button onClick={() => setShowTraining(!showTraining)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </button>
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        title="Diccionario"
-                    >
+                    <button onClick={() => setShowSettings(!showSettings)} className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-200 dark:border-gray-700">
                         <Book className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
-                    <button
-                        onClick={handleLogout}
-                        className="p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-800"
-                        title="Cerrar sesión"
-                    >
+                    <button onClick={handleLogout} className="p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all border border-gray-200 dark:border-gray-700">
                         <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-red-600" />
                     </button>
                 </div>
@@ -567,86 +528,33 @@ export function TranscriptionEditor() {
                     />
                 ) : (
                     <>
-                        {/* Toolbar */}
                         <div className="flex items-center justify-between px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex space-x-2">
-                                <button
-                                    onClick={() => { setFullText(''); setSelectionRange({ start: 0, end: 0 }); }}
-                                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-red-200 dark:hover:border-red-800"
-                                    title="Borrar todo"
-                                >
+                                <button onClick={() => { setFullText(''); setSelectionRange({ start: 0, end: 0 }); }} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex items-center space-x-2 border border-transparent">
                                     <Trash2 className="w-4 h-4" />
                                     <span className="text-sm font-medium">Borrar</span>
                                 </button>
-                                <button
-                                    onClick={handleCopyToClipboard}
-                                    disabled={!fullText}
-                                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Copiar al portapapeles"
-                                >
+                                <button onClick={handleCopyToClipboard} disabled={!fullText} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all flex items-center space-x-2 border border-transparent disabled:opacity-50">
                                     {fullText === lastCopiedText ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                     <span className="text-sm font-medium">{fullText === lastCopiedText ? 'Copiado' : 'Copiar'}</span>
                                 </button>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={handleAiCorrection}
-                                    disabled={!fullText || isCorrecting}
-                                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 border ${isCorrecting
-                                        ? 'bg-purple-100 text-purple-600 border-purple-200 animate-pulse'
-                                        : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-sm hover:shadow'
-                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    title="Corregir con IA"
-                                >
+                                <button onClick={handleAiCorrection} disabled={!fullText || isCorrecting} className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 border ${isCorrecting ? 'bg-purple-100 text-purple-600 border-purple-200 animate-pulse' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-sm disabled:opacity-50'}`}>
                                     {isCorrecting ? <Sparkles className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                     <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
                                 </button>
                                 <div className={`text-xs font-bold tracking-widest px-3 py-1.5 rounded-full border ${isListening ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'}`}>
                                     {isListening ? '● AUDIO ANALYTICS ACTIVE' : 'SYSTEM READY'}
                                 </div>
-                                {activeContexts.length > 0 && (
-                                    <div className="flex items-center space-x-1 animate-in fade-in slide-in-from-right-4 duration-500">
-                                        {activeContexts.map(ctx => (
-                                            <div key={ctx.id} className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-semibold border border-purple-200 dark:border-purple-800">
-                                                <Wand2 className="w-3 h-3" />
-                                                <span>{ctx.description}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {medicalIssues.length > 0 && (
-                                    <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-800 animate-in fade-in slide-in-from-right-4 duration-500 cursor-help group relative">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        <span>{medicalIssues.length} alerta{medicalIssues.length !== 1 ? 's' : ''}</span>
-
-                                        {/* Tooltip */}
-                                        <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-3 hidden group-hover:block z-50">
-                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Incoherencias detectadas</h4>
-                                            <div className="space-y-2">
-                                                {medicalIssues.map((issue) => (
-                                                    <div key={issue.id} className="text-xs">
-                                                        <p className="font-medium text-amber-600 dark:text-amber-400">{issue.text}</p>
-                                                        <p className="text-gray-600 dark:text-gray-400">{issue.message}</p>
-                                                        {issue.suggestion && (
-                                                            <p className="mt-1 text-green-600 dark:text-green-400 font-mono bg-green-50 dark:bg-green-900/20 p-1 rounded">
-                                                                Sugerencia: {issue.suggestion}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
-                        {/* Editor Area */}
-                        <div className="relative flex-1 p-6">
+                        <div className="relative flex-1 p-6 flex flex-col">
                             <textarea
                                 ref={textareaRef}
-                                className="w-full h-full resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
-                                placeholder="Iniciando secuencia de dictado... Los hallazgos se procesarán encriptados."
+                                className="w-full flex-1 resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
+                                placeholder="Iniciando secuencia de dictado..."
                                 value={fullText}
                                 onChange={(e) => {
                                     handleManualChange(e.target.value);
@@ -656,224 +564,71 @@ export function TranscriptionEditor() {
                                 onClick={handleSelect}
                                 onKeyUp={handleSelect}
                             />
-
-                            {showSettings && (
-                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-                                    <div className="glass-card rounded-2xl max-w-3xl w-full relative animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/10 shadow-2xl">
-                                        <button
-                                            onClick={() => setShowSettings(false)}
-                                            className="absolute top-4 right-4 text-white/50 hover:text-[var(--accent)] z-10 p-2 hover:bg-white/10 rounded-lg transition-colors"
-                                        >
-                                            <X className="w-6 h-6" />
-                                        </button>
-                                        <VocabularySettings
-                                            selectedText={getSelectedText()}
-                                            onCorrect={handleApplyCorrection}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {showTemplates && (
-                                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                                    <TemplateManager
-                                        onClose={() => setShowTemplates(false)}
-                                        onInsert={handleInsertTemplate}
-                                        onInsertStructured={handleOpenStructuredTemplate}
-                                    />
-                                </div>
-                            )}
-
-                            <AiSettingsModal
-                                isOpen={showAiSettings}
-                                onClose={() => setShowAiSettings(false)}
-                            />
-
-                            <CorrectionReviewModal
-                                isOpen={!!reviewData}
-                                onClose={() => setReviewData(null)}
-                                originalText={reviewData?.original || ''}
-                                correctedText={reviewData?.corrected || ''}
-                                confidence={reviewData?.confidence}
-                                onApply={handleApplyReview}
-                                onSaveToDictionary={addReplacement}
-                            />
-
-                            <LearningDashboard
-                                isOpen={showDashboard}
-                                onClose={() => setShowDashboard(false)}
-                            />
-
-                            <TrainingMode
-                                isOpen={showTraining}
-                                onClose={() => setShowTraining(false)}
-                                isListening={isListening}
-                                transcript={lastEvent?.text || ''}
-                                onStartListening={() => {
-                                    if (!isListening) {
-                                        startListening();
-                                        initAudio();
-                                    }
-                                }}
-                                onStopListening={() => {
-                                    if (isListening) {
-                                        stopListening();
-                                        cleanupAudio();
-                                    }
-                                }}
-                                onComplete={(results) => {
-                                    results.forEach(r => addReplacement(r.error, r.correct));
-                                }}
-                            />
-
-
-
-                            {/* Interim Overlay */}
                             {isListening && interimResult && (
-                                <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic pointer-events-none border-l-4 border-blue-500 shadow-lg">
+                                <div className="absolute bottom-6 left-6 right-6 bg-blue-50/90 dark:bg-blue-900/30 backdrop-blur-md p-4 rounded-xl text-gray-700 dark:text-gray-300 italic border-l-4 border-blue-500 shadow-lg">
                                     {interimResult}
                                 </div>
                             )}
-
-                            {/* Learning Suggestion Toast */}
-                            {editSuggestion && (
-                                <div className="absolute top-24 right-6 left-6 sm:left-auto sm:w-80 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-800 rounded-xl shadow-2xl p-4 animate-in slide-in-from-right duration-300 z-50">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="bg-purple-100 dark:bg-purple-900/50 p-1.5 rounded-lg">
-                                            <BookPlus className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                        </div>
-                                        <button onClick={() => setEditSuggestion(null)} className="text-gray-400 hover:text-gray-600">
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                                        ¿Añadir esta corrección al diccionario para que aprenda?
-                                    </p>
-                                    <div className="flex items-center space-x-2 text-xs font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded-lg mb-4">
-                                        <span className="text-red-500 line-through truncate max-w-[100px]">{editSuggestion.original}</span>
-                                        <span className="text-gray-400">→</span>
-                                        <span className="text-green-600 font-bold truncate max-w-[100px]">{editSuggestion.replacement}</span>
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => {
-                                                addReplacement(editSuggestion.original, editSuggestion.replacement);
-                                                setEditSuggestion(null);
-                                            }}
-                                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 rounded-lg transition-colors"
-                                        >
-                                            Guardar
-                                        </button>
-                                        <button
-                                            onClick={() => setEditSuggestion(null)}
-                                            className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-bold py-2 rounded-lg transition-colors"
-                                        >
-                                            Ignorar
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
+
+                        {editSuggestion && (
+                            <div className="absolute top-24 right-6 left-6 sm:left-auto sm:w-80 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-800 rounded-xl shadow-2xl p-4 z-50 animate-in slide-in-from-right">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="bg-purple-100 p-1.5 rounded-lg">
+                                        <BookPlus className="w-4 h-4 text-purple-600" />
+                                    </div>
+                                    <button onClick={() => setEditSuggestion(null)} className="text-gray-400 hover:text-gray-600">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">¿Añadir corrección?</p>
+                                <div className="flex items-center space-x-2 text-xs font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded-lg mb-4">
+                                    <span className="text-red-500 line-through truncate">{editSuggestion.original}</span>
+                                    <span>→</span>
+                                    <span className="text-green-600 font-bold truncate">{editSuggestion.replacement}</span>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button onClick={() => { addReplacement(editSuggestion.original, editSuggestion.replacement); setEditSuggestion(null); }} className="flex-1 bg-purple-600 text-white text-xs font-bold py-2 rounded-lg">Guardar</button>
+                                    <button onClick={() => setEditSuggestion(null)} className="flex-1 bg-gray-100 dark:bg-gray-700 text-xs font-bold py-2 rounded-lg">Ignorar</button>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </main>
 
             {!activeStructuredTemplate && (
                 <>
-                    <div className="flex justify-center pb-8">
+                    <div className="flex justify-center pb-8 shrink-0">
                         <button
-                            onClick={() => {
-                                if (isListening) {
-                                    stopListening();
-                                    cleanupAudio();
-                                } else {
-                                    startListening();
-                                    initAudio();
-                                }
-                            }}
+                            onClick={() => { if (isListening) { stopListening(); cleanupAudio(); } else { startListening(); initAudio(); } }}
                             className={twMerge(
-                                "group relative flex items-center justify-center w-24 h-24 rounded-full shadow-[0_0_50px_rgba(34,211,238,0.2)] dark:shadow-[0_0_50px_rgba(34,211,238,0.4)] transition-all duration-500 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 border-4",
-                                isListening
-                                    ? "bg-red-600 border-red-400 shadow-red-500/50 focus:ring-red-200"
-                                    : "bg-gray-900 border-[var(--accent)] shadow-cyan-500/50 focus:ring-cyan-200"
+                                "group relative flex items-center justify-center w-24 h-24 rounded-full shadow-lg transition-all transform hover:scale-110 active:scale-95 border-4",
+                                isListening ? "bg-red-600 border-red-400 shadow-red-500/50" : "bg-gray-900 border-[var(--accent)] shadow-cyan-500/50"
                             )}
                         >
-                            {isListening ? (
-                                <Square className="w-10 h-10 text-white fill-current" />
-                            ) : (
-                                <Mic className="w-12 h-12 text-[var(--accent)]" />
-                            )}
-
-                            {/* Pulse effect ring */}
-                            {isListening && (
-                                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-                            )}
+                            {isListening ? <Square className="w-10 h-10 text-white fill-current" /> : <Mic className="w-12 h-12 text-[var(--accent)]" />}
+                            {isListening && <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>}
                         </button>
                     </div>
 
-                    {/* Unified Audio Status Bar (Stabilized) */}
-                    <div className="flex flex-col items-center pb-8 px-4 h-32">
-                        <div className={twMerge(
-                            "w-full max-w-md space-y-4 transition-all duration-500",
-                            isListening ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-                        )}>
-                            {/* Audio level bar */}
-                            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner font-sans">
-                                <div
-                                    className={twMerge(
-                                        "h-full transition-all duration-150 ease-out",
-                                        isMuted ? 'bg-gray-400' : isLow ? 'bg-yellow-500' : 'bg-indigo-500'
-                                    )}
-                                    style={{ width: `${audioLevel}%` }}
-                                />
+                    <div className="flex flex-col items-center pb-8 px-4 h-32 shrink-0">
+                        <div className={twMerge("w-full max-w-md space-y-4 transition-all duration-500", isListening ? "opacity-100" : "opacity-0 pointer-events-none")}>
+                            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div className={twMerge("h-full transition-all duration-150", isMuted ? 'bg-gray-400' : isLow ? 'bg-yellow-500' : 'bg-indigo-500')} style={{ width: `${audioLevel}%` }} />
                             </div>
-
-                            {/* Unified Info Line */}
-                            <div className="flex flex-col items-center justify-center space-y-2 min-h-[48px] font-sans">
+                            <div className="flex flex-col items-center justify-center space-y-2 min-h-[48px]">
                                 {isMuted ? (
-                                    <div className="flex items-center space-x-2 text-red-500 dark:text-red-400 text-sm font-medium animate-pulse">
+                                    <div className="flex items-center space-x-2 text-red-500 text-sm font-medium animate-pulse">
                                         <AlertTriangle className="w-4 h-4" />
-                                        <span>Micrófono silenciado o no detectado</span>
+                                        <span>Micrófono silenciado</span>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center space-y-2">
-                                        {/* Priority 1: Volume Warning */}
-                                        {isLow && (
-                                            <div className="flex items-center space-x-2 text-yellow-600 dark:text-yellow-400 text-sm font-medium">
-                                                <AlertTriangle className="w-4 h-4" />
-                                                <span>Sube el volumen o acércate al micro</span>
-                                            </div>
-                                        )}
-
-                                        {/* Priority 2: Quality/SNR Info */}
-                                        <div className="flex items-center gap-3">
-                                            <div className={twMerge(
-                                                "px-3 py-1 rounded-full flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider border transition-colors duration-300",
-                                                quality === 'excellent' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                    quality === 'good' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                        quality === 'fair' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                            'bg-red-50 text-red-600 border-red-100'
-                                            )}>
-                                                <div className={twMerge(
-                                                    "w-1.5 h-1.5 rounded-full",
-                                                    quality === 'excellent' ? 'bg-green-500' :
-                                                        quality === 'good' ? 'bg-blue-500' :
-                                                            quality === 'fair' ? 'bg-yellow-500' :
-                                                                'bg-red-500'
-                                                )} />
-                                                SNR {snr}dB • {
-                                                    quality === 'excellent' ? 'Calidad Óptima' :
-                                                        quality === 'good' ? 'Buena Calidad' :
-                                                            quality === 'fair' ? 'Calidad Regular' :
-                                                                'Ambiente Ruidoso'
-                                                }
-                                            </div>
-
-                                            {recommendation && !isLow && (
-                                                <span className="text-[10px] text-orange-500 font-medium animate-pulse">
-                                                    {recommendation}
-                                                </span>
-                                            )}
+                                    <div className="flex flex-col items-center space-y-1">
+                                        {isLow && <div className="text-yellow-600 text-xs">Sube el volumen</div>}
+                                        <div className={twMerge("px-3 py-1 rounded-full flex items-center gap-2 text-[10px] font-bold uppercase", quality === 'excellent' ? 'bg-green-50 text-green-600' : quality === 'good' ? 'bg-blue-50 text-blue-600' : quality === 'fair' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600')}>
+                                            <div className={twMerge("w-1.5 h-1.5 rounded-full", quality === 'excellent' ? 'bg-green-500' : quality === 'good' ? 'bg-blue-500' : quality === 'fair' ? 'bg-yellow-500' : 'bg-red-500')} />
+                                            SNR {snr}dB • {quality.toUpperCase()}
                                         </div>
                                     </div>
                                 )}
@@ -882,6 +637,29 @@ export function TranscriptionEditor() {
                     </div>
                 </>
             )}
+
+            {/* MODALS RELOCATED TO ROOT */}
+            {showSettings && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="glass-card rounded-2xl max-w-3xl w-full relative animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden">
+                        <button onClick={() => setShowSettings(false)} className="absolute top-4 right-4 text-white/50 hover:text-[var(--accent)] z-10 p-2 hover:bg-white/10 rounded-lg transition-colors"><X className="w-6 h-6" /></button>
+                        <div className="flex-1 overflow-y-auto">
+                            <VocabularySettings selectedText={getSelectedText()} onCorrect={handleApplyCorrection} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showTemplates && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <TemplateManager onClose={() => setShowTemplates(false)} onInsert={handleInsertTemplate} onInsertStructured={handleOpenStructuredTemplate} />
+                </div>
+            )}
+
+            <AiSettingsModal isOpen={showAiSettings} onClose={() => setShowAiSettings(false)} />
+            <CorrectionReviewModal isOpen={!!reviewData} onClose={() => setReviewData(null)} originalText={reviewData?.original || ''} correctedText={reviewData?.corrected || ''} confidence={reviewData?.confidence} onApply={handleApplyReview} onSaveToDictionary={addReplacement} />
+            <LearningDashboard isOpen={showDashboard} onClose={() => setShowDashboard(false)} />
+            <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
         </div>
     );
 }
