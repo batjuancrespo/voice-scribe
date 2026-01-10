@@ -160,12 +160,12 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                 <div className="flex flex-col">
                     <h2 className="text-lg font-black text-white uppercase tracking-tighter italic flex items-center gap-2">
                         <FileText className="w-5 h-5 text-[var(--accent)]" />
-                        Tactical <span className="text-[var(--accent)]">Entry</span>: {templateName}
+                        Entrada <span className="text-[var(--accent)]">Táctica</span>: {templateName}
                     </h2>
                     <div className="flex space-x-3 text-[10px] font-bold tracking-[0.1em] text-[var(--accent)] uppercase opacity-80 mt-1">
-                        <span>{stats.total} SECTORS</span>
+                        <span>{stats.total} SECTORES</span>
                         <span className="text-green-500">{stats.normal} NOMINAL</span>
-                        <span className="text-amber-500">{stats.edited} ANOMALIES</span>
+                        <span className="text-amber-500">{stats.edited} ANOMALÍAS</span>
                     </div>
                 </div>
                 <button
@@ -210,7 +210,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                                                 <div className="flex items-center space-x-2">
                                                     {isActive && (
                                                         <span className="animate-pulse flex items-center text-[var(--accent)] text-[10px] font-black tracking-tighter">
-                                                            <Mic className="w-3 h-3 mr-1" /> ANALYZING AUDIO
+                                                            <Mic className="w-3 h-3 mr-1" /> ANALIZANDO AUDIO
                                                         </span>
                                                     )}
                                                     {isEdited && !isActive && (
@@ -281,7 +281,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                         onClick={handleStopGlobal}
                         className="px-6 py-3 bg-red-600/20 text-red-500 border border-red-500/50 rounded-xl hover:bg-red-600/30 flex items-center font-black uppercase tracking-widest animate-pulse"
                     >
-                        <Square className="w-5 h-5 mr-3" /> STOP SENSOR
+                        <Square className="w-5 h-5 mr-3" /> DETENER SENSOR
                     </button>
                 )}
                 <button
@@ -289,7 +289,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                     className="px-8 py-4 bg-[var(--accent)] text-black rounded-xl hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(234,179,8,0.3)] flex items-center font-black uppercase tracking-widest transition-all"
                 >
                     <Check className="w-6 h-6 mr-3" />
-                    Finalize Report
+                    Finalizar Informe
                 </button>
             </div>
             {/* Context Menu */}

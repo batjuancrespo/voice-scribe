@@ -88,8 +88,8 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                         <div className="flex items-center space-x-2">
                             <Sparkles className="w-6 h-6 text-[var(--accent)]" />
                             <div className="flex flex-col">
-                                <h2 className="text-xl font-black uppercase tracking-tighter italic">AI Config</h2>
-                                <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">Encryption Module</span>
+                                <h2 className="text-xl font-black uppercase tracking-tighter italic">Configuración IA</h2>
+                                <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">Módulo de Encriptación</span>
                             </div>
                         </div>
                         <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg">
@@ -102,7 +102,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                     <div>
                         <label className="block text-sm font-bold text-[var(--accent)] uppercase tracking-widest mb-2 flex items-center opacity-80">
                             <Key className="w-4 h-4 mr-1.5" />
-                            Security Key
+                            Clave de Seguridad
                         </label>
                         <div className="relative">
                             <input
@@ -117,11 +117,11 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                                 onClick={() => setIsVisible(!isVisible)}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-[var(--accent)] text-[10px] font-black tracking-widest"
                             >
-                                {isVisible ? 'HIDE' : 'SHOW'}
+                                {isVisible ? 'OCULTAR' : 'MOSTRAR'}
                             </button>
                         </div>
                         <p className="text-[10px] text-white/40 mt-2 font-bold uppercase tracking-widest">
-                            Required if GEMINI_API_KEY is not defined in system.
+                            Requerido si GEMINI_API_KEY no está definido en el sistema.
                         </p>
                     </div>
 
@@ -129,7 +129,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                         <div className="flex justify-between items-center mb-2">
                             <label className="text-sm font-bold text-[var(--accent)] uppercase tracking-widest flex items-center opacity-80">
                                 <Sparkles className="w-4 h-4 mr-1.5" />
-                                Neural Engine
+                                Motor Neuronal
                             </label>
                             <button
                                 onClick={() => fetchModels(apiKey)}
@@ -137,7 +137,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                                 className="text-[10px] text-[var(--accent)] hover:underline font-black tracking-widest flex items-center"
                             >
                                 <RefreshCw className={twMerge("w-3 h-3 mr-1", isLoadingModels && "animate-spin")} />
-                                {isLoadingModels ? 'SYNCING...' : 'SYNC LIST'}
+                                {isLoadingModels ? 'SINCRONIZANDO...' : 'SINCRONIZAR LISTA'}
                             </button>
                         </div>
                         <select
@@ -157,7 +157,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                             className="w-full py-5 bg-[var(--accent)] text-black rounded-xl hover:scale-[1.02] active:scale-[0.98] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(234,179,8,0.4)] flex justify-center items-center"
                         >
                             <Save className="w-6 h-6 mr-3" />
-                            Initialize Core
+                            Inicializar Núcleo
                         </button>
                     </div>
                 </div>

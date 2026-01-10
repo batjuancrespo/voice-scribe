@@ -112,10 +112,10 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                         <div className="flex flex-col">
                             <h2 className="text-xl font-black uppercase tracking-tighter italic flex items-center gap-3">
                                 <Check className="w-6 h-6 text-[var(--accent)]" />
-                                Review Tactical <span className="text-[var(--accent)]">Changes</span>
+                                Revisar <span className="text-[var(--accent)]">Cambios</span> Tácticos
                             </h2>
                             <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                                AI Analytical Correction • QA Verify
+                                Corrección Analítica IA • Verificación QA
                             </span>
                         </div>
                         <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
@@ -203,7 +203,7 @@ export function CorrectionReviewModal({ isOpen, onClose, originalText, corrected
                         className="px-8 py-3 bg-[var(--accent)] text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-yellow-500/20 flex items-center gap-3"
                     >
                         <Check className="w-5 h-5" />
-                        Execute Protocol
+                        Ejecutar Protocolo
                     </button>
                 </div>
             </div>

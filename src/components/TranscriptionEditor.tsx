@@ -545,7 +545,7 @@ export function TranscriptionEditor() {
                                     <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
                                 </button>
                                 <div className={`text-xs font-bold tracking-widest px-3 py-1.5 rounded-full border ${isListening ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'}`}>
-                                    {isListening ? '● AUDIO ANALYTICS ACTIVE' : 'SYSTEM READY'}
+                                    {isListening ? '● ANÁLISIS DE AUDIO ACTIVO' : 'SISTEMA PREPARADO'}
                                 </div>
                             </div>
                         </div>
@@ -628,7 +628,7 @@ export function TranscriptionEditor() {
                                         {isLow && <div className="text-yellow-600 text-xs">Sube el volumen</div>}
                                         <div className={twMerge("px-3 py-1 rounded-full flex items-center gap-2 text-[10px] font-bold uppercase", quality === 'excellent' ? 'bg-green-50 text-green-600' : quality === 'good' ? 'bg-blue-50 text-blue-600' : quality === 'fair' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600')}>
                                             <div className={twMerge("w-1.5 h-1.5 rounded-full", quality === 'excellent' ? 'bg-green-500' : quality === 'good' ? 'bg-blue-500' : quality === 'fair' ? 'bg-yellow-500' : 'bg-red-500')} />
-                                            SNR {snr}dB • {quality.toUpperCase()}
+                                            SNR {snr}dB • {quality === 'excellent' ? 'EXCELENTE' : quality === 'good' ? 'BUENO' : quality === 'fair' ? 'REGULAR' : 'MALO'}
                                         </div>
                                     </div>
                                 )}
