@@ -490,10 +490,13 @@ export function TranscriptionEditor() {
     return (
         <div className="flex flex-col h-full max-w-5xl mx-auto p-6 space-y-6">
             <header className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                        Voz a texto online
+                <div className="flex flex-col">
+                    <h1 className="text-3xl font-black tracking-tighter text-gray-900 dark:text-white uppercase italic">
+                        Voice-Scribe <span className="text-[var(--accent)]">Pro</span>
                     </h1>
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
+                        Wayne Medical Division • Gotham City
+                    </span>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button
@@ -554,7 +557,7 @@ export function TranscriptionEditor() {
                 </div>
             )}
 
-            <main className="flex-1 relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col min-h-[500px]">
+            <main className="flex-1 relative glass-card rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
                 {activeStructuredTemplate ? (
                     <StructuredTemplateEditor
                         templateName={activeStructuredTemplate.name}
@@ -598,8 +601,8 @@ export function TranscriptionEditor() {
                                     {isCorrecting ? <Sparkles className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                     <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
                                 </button>
-                                <div className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
-                                    {isListening ? '● GRABANDO' : 'LISTO'}
+                                <div className={`text-xs font-bold tracking-widest px-3 py-1.5 rounded-full border ${isListening ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'}`}>
+                                    {isListening ? '● AUDIO ANALYTICS ACTIVE' : 'SYSTEM READY'}
                                 </div>
                                 {activeContexts.length > 0 && (
                                     <div className="flex items-center space-x-1 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -643,7 +646,7 @@ export function TranscriptionEditor() {
                             <textarea
                                 ref={textareaRef}
                                 className="w-full h-full resize-none outline-none text-lg leading-relaxed bg-transparent text-gray-800 dark:text-gray-200 font-serif"
-                                placeholder="Pulsa el micrófono para empezar a dictar..."
+                                placeholder="Iniciando secuencia de dictado... Los hallazgos se procesarán encriptados."
                                 value={fullText}
                                 onChange={(e) => {
                                     handleManualChange(e.target.value);
@@ -791,16 +794,16 @@ export function TranscriptionEditor() {
                                 }
                             }}
                             className={twMerge(
-                                "group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4",
+                                "group relative flex items-center justify-center w-24 h-24 rounded-full shadow-[0_0_50px_rgba(34,211,238,0.2)] dark:shadow-[0_0_50px_rgba(34,211,238,0.4)] transition-all duration-500 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 border-4",
                                 isListening
-                                    ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/50 focus:ring-red-200"
-                                    : "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/50 focus:ring-blue-200"
+                                    ? "bg-red-600 border-red-400 shadow-red-500/50 focus:ring-red-200"
+                                    : "bg-gray-900 border-[var(--accent)] shadow-cyan-500/50 focus:ring-cyan-200"
                             )}
                         >
                             {isListening ? (
-                                <Square className="w-8 h-8 text-white fill-current" />
+                                <Square className="w-10 h-10 text-white fill-current" />
                             ) : (
-                                <Mic className="w-10 h-10 text-white" />
+                                <Mic className="w-12 h-12 text-[var(--accent)]" />
                             )}
 
                             {/* Pulse effect ring */}

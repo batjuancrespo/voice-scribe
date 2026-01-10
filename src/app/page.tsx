@@ -42,7 +42,7 @@ export default function Home() {
     }
 
     return (
-        <main className="h-screen flex flex-col bg-gray-50 dark:bg-black font-[family-name:var(--font-geist-sans)]">
+        <main className="h-screen flex flex-col font-[family-name:var(--font-geist-sans)] app-container">
             <div className="flex-1 overflow-hidden">
                 <TranscriptionEditor />
             </div>

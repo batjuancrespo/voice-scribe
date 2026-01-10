@@ -3,13 +3,22 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --accent: #eab308;
+  /* Bat-Yellow */
+  --bat-bg: url('/themes/batman/light_bg.png');
+  --card-bg: rgba(255, 255, 255, 0.85);
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #020617;
+  /* Obsidian */
+  --foreground: #f1f5f9;
+  --accent: #22d3ee;
+  /* Bat-Computer Cyan */
+  --bat-bg: url('/themes/batman/dark_bg.png');
+  --card-bg: rgba(15, 23, 42, 0.8);
 }
 
 @theme inline {
@@ -23,5 +32,30 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background-image: var(--bat-bg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.app-container {
+  backdrop-filter: blur(4px);
+  min-height: 100vh;
+  background: linear-gradient(to bottom,
+      transparent,
+      var(--background) 95%);
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s ease;
+}
+
+.dark .glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
