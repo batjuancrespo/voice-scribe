@@ -16,10 +16,10 @@ const UNITS: Record<string, number> = {
 };
 
 const DECIMALS: Record<string, string> = {
-    'coma cero': '.0', 'coma uno': '.1', 'coma dos': '.2', 'coma tres': '.3', 'coma cuatro': '.4',
-    'coma cinco': '.5', 'coma seis': '.6', 'coma siete': '.7', 'coma ocho': '.8', 'coma nueve': '.9',
-    'punto cero': '.0', 'punto uno': '.1', 'punto dos': '.2', 'punto tres': '.3', 'punto cuatro': '.4',
-    'punto cinco': '.5', 'punto seis': '.6', 'punto siete': '.7', 'punto ocho': '.8', 'punto nueve': '.9',
+    'coma cero': ',0', 'coma uno': ',1', 'coma dos': ',2', 'coma tres': ',3', 'coma cuatro': ',4',
+    'coma cinco': ',5', 'coma seis': ',6', 'coma siete': ',7', 'coma ocho': ',8', 'coma nueve': ',9',
+    'punto cero': ',0', 'punto uno': ',1', 'punto dos': ',2', 'punto tres': ',3', 'punto cuatro': ',4',
+    'punto cinco': ',5', 'punto seis': ',6', 'punto siete': ',7', 'punto ocho': ',8', 'punto nueve': ',9',
 };
 
 // Convert text numbers to digits

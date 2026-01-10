@@ -86,6 +86,9 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     // 1. Convert text numbers to digits
     processed = convertTextNumbersToDigits(processed);
 
+    // 1b. Convert any remaining dots between digits to commas (AI often returns dots)
+    processed = processed.replace(/(\d)\.(\d)/g, '$1,$2');
+
     // 2. Apply Radiology Dictionary
     const radiologyReplacements = Object.entries(RADIOLOGY_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
     radiologyReplacements.forEach(([original, replacement]) => {
@@ -246,7 +249,9 @@ export function processTranscriptSegment(text: string, userReplacements: Record<
     });
 
     // 5. Formatting Rules
-    processed = processed.replace(/([.,:;?!])([^\s\n])/g, '$1 $2');
+    // Punctuation spacing: only if NOT a decimal comma (e.g., skip 3,2)
+    processed = processed.replace(/([.:;?!])([^\s\n])/g, '$1 $2');
+    processed = processed.replace(/(?<!\d),([^\s\n\d])/g, ', $1');
     processed = processed.replace(/\s+([.,:;?!])/g, '$1');
 
     // 6. Context-aware Capitalization
