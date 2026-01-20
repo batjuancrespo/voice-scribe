@@ -73,12 +73,12 @@ export function TranscriptionEditor() {
     const lastSentinelProcessedRef = useRef<string>("");
 
     const [aiKey, setAiKey] = useState<string | null>(null);
-    const [aiModel, setAiModel] = useState('gemini-1.5-flash');
+    const [aiModel, setAiModel] = useState('gemini-2.5-flash');
 
     // Sync AI Settings from localStorage
     useEffect(() => {
         setAiKey(localStorage.getItem('gemini_api_key'));
-        setAiModel(localStorage.getItem('gemini_model') || 'gemini-1.5-flash');
+        setAiModel(localStorage.getItem('gemini_model') || 'gemini-2.5-flash');
     }, [showAiSettings]);
 
     // Sentinel Background Correction (Quality 7.0)

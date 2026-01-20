@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        let { text, apiKey, userDictionary, model = 'gemini-1.5-flash', mode = 'standard' } = body;
+        let { text, apiKey, userDictionary, model = 'gemini-2.5-flash', mode = 'standard' } = body;
 
         // Fallback to server-side API Key if not provided by client
         if (!apiKey) {

@@ -11,14 +11,17 @@ interface AiSettingsModalProps {
 
 export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     const [apiKey, setApiKey] = useState('');
-    const [model, setModel] = useState('gemini-2.0-flash-exp');
+    const [model, setModel] = useState('gemini-2.5-flash');
     const [isVisible, setIsVisible] = useState(false);
 
     // Default safe fallback models
     const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([
-        { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.5 Flash (2.0 Exp)' },
-        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Estable)' },
-        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' }
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Jun 2025)' },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Jun 2025)' },
+        { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite' },
+        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (v2.0)' },
+        { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite' },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Legacy)' }
     ]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
 
