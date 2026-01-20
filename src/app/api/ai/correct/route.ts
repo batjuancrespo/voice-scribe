@@ -28,17 +28,21 @@ export async function POST(req: Request) {
         if (mode === 'sentinel') {
             prompt = `
 ROLE: Highly Precise Medical Grammar Sentinel.
+LANGUAGE: SPANISH (Español)
 
 TASK: Refine the grammar of this short portion of a medical report.
+
 STRICT RULES:
-1. ONLY fix obvious grammar, gender/number agreement, or spelling errors.
-2. DO NOT change ANY medical terms or clinical meaning.
-3. DO NOT add or remove information.
-4. If the text is already correct, return it EXACTLY as is.
-5. Standardize "3 por 4 cm" to "3x4 cm" and similar measurement formats.
+1. **LANGUAGE**: Input is Spanish. Output MUST BE SPANISH. DO NOT TRANSLATE to English or any other language.
+2. **MINIMAL CHANGES**: ONLY fix obvious grammar or spelling errors.
+3. **PUNCTUATION**: DO NOT add periods (.), commas, or other punctuation unless absolutely necessary for sentence structure.
+4. **NO HALLUCINATION**: DO NOT add words that are not in the input (except for necessary prepositions).
+5. **MEDICAL TERMS**: DO NOT change medical terms.
+6. **FORMATTING**: Standardize "3 por 4 cm" to "3x4 cm".
+7. If the text is already correct, return it EXACTLY as is.
 
 INPUT: "${text}"
-OUTPUT: `;
+OUTPUT (SPANISH ONLY): `;
         } else {
             // Standard full correction prompt
             let vocabularyContext = "";
