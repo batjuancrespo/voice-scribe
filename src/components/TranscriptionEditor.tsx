@@ -335,21 +335,8 @@ export function TranscriptionEditor() {
     const handleApplyReview = (finalText: string) => {
         const originalText = reviewData?.original || '';
 
-        // Implicit Learning (Quality 8.4): Precise n-gram extraction
-        if (originalText && finalText !== originalText) {
-            const diff = computeDiff(originalText, finalText);
-            const corrections = extractCorrectionPairs(diff);
-
-            corrections.forEach(({ original: orig, replacement: repl }) => {
-                const wordCountOrig = orig.split(/\s+/).length;
-                const wordCountRepl = repl.split(/\s+/).length;
-
-                if (wordCountOrig <= 4 && wordCountRepl <= 4) {
-                    console.log(`[Auto-Learning Phrase] Precise Match: "${orig}" -> "${repl}"`);
-                    addReplacement(orig.toLowerCase(), repl);
-                }
-            });
-        }
+        // Implicit Learning (Quality 8.4) - REMOVED PER USER REQUEST (Supervised only)
+        // Previous logic automatically added corrections to dictionary. Now relying on manual addition in Review Modal.
 
         setFullText(finalText);
         setSelectionRange({ start: finalText.length, end: finalText.length });
