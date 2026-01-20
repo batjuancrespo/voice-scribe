@@ -262,31 +262,32 @@ export function TranscriptionEditor() {
 
     // Manual Edit Detection for Auto-Learning (Deep N-Grams)
     const handleManualChange = (newValue: string) => {
-        const oldValue = fullText;
+        // const oldValue = fullText;
         setFullText(newValue);
 
-        if (isListening || isAutoChangeRef.current) return;
+        // DISABLED PER USER REQUEST: Manual edit detection was too intrusive.
+        // if (isListening || isAutoChangeRef.current) return;
 
-        // Compare if it's a small correction
-        const diff = computeDiff(oldValue, newValue);
+        // // Compare if it's a small correction
+        // const diff = computeDiff(oldValue, newValue);
 
-        // Extract sequences of removed/added words
-        // We look for contiguous blocks of changes
-        const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 0);
-        const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 0);
+        // // Extract sequences of removed/added words
+        // // We look for contiguous blocks of changes
+        // const removed = diff.filter(d => d.removed).map(d => d.value.trim()).filter(v => v.length > 0);
+        // const added = diff.filter(d => d.added).map(d => d.value.trim()).filter(v => v.length > 0);
 
-        // N-Gram Detection Logic:
-        // Case A: 1-to-1 word (handled before)
-        // Case B: Multi-word phrase replaced by another phrase (Sprint 4)
-        if (removed.length > 0 && added.length > 0 && removed.length <= 3 && added.length <= 3) {
-            const orig = removed.join(' ').toLowerCase();
-            const repl = added.join(' ');
+        // // N-Gram Detection Logic:
+        // // Case A: 1-to-1 word (handled before)
+        // // Case B: Multi-word phrase replaced by another phrase (Sprint 4)
+        // if (removed.length > 0 && added.length > 0 && removed.length <= 3 && added.length <= 3) {
+        //     const orig = removed.join(' ').toLowerCase();
+        //     const repl = added.join(' ');
 
-            // Only suggest if different and not already in dictionary
-            if (orig !== repl.toLowerCase() && !replacements[orig]) {
-                setEditSuggestion({ original: orig, replacement: repl });
-            }
-        }
+        //     // Only suggest if different and not already in dictionary
+        //     // if (orig !== repl.toLowerCase() && !replacements[orig]) {
+        //     //     setEditSuggestion({ original: orig, replacement: repl });
+        //     // }
+        // }
     };
 
     const handleAiCorrection = async () => {
