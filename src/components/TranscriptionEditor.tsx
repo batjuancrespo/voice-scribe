@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranscription } from '@/hooks/useTranscription';
@@ -222,31 +222,6 @@ export function TranscriptionEditor() {
         }
     }, [darkMode]);
 
-    // ... (rest of the component)
-
-    return (
-        <div className="flex flex-col h-full max-w-5xl mx-auto p-6 space-y-6">
-            {/* ... (rest of the JSX) ... */}
-
-            <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
-
-            {/* Theme Image (Dynamic) */}
-            {themeImage && (
-                <img
-                    src={themeImage}
-                    alt="Theme Illustration"
-                    className={twMerge(
-                        "fixed bottom-0 right-0 max-h-[500px] w-auto pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10",
-                        // Frame/Border Styling
-                        "border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl",
-                        // Mode specific blending
-                        darkMode ? "opacity-40 mix-blend-luminosity" : "opacity-100 mix-blend-multiply"
-                    )}
-                />
-            )}
-        </div>
-    );
-}
 
 // Track selection changes
 const handleSelect = () => {
@@ -364,7 +339,7 @@ const handleAiCorrection = async () => {
         }
     } catch (error) {
         console.error('AI Request Failed:', error);
-        alert('Error de conexión con la IA');
+        alert('Error de conexiÃ³n con la IA');
     } finally {
         setIsCorrecting(false);
     }
@@ -427,7 +402,7 @@ useEffect(() => {
         }
 
         // Voice Command: Editing
-        if (processedText.toLowerCase().includes('borrar última palabra')) {
+        if (processedText.toLowerCase().includes('borrar Ãºltima palabra')) {
             const parts = before.trimEnd().split(/\s+/);
             if (parts.length > 0) {
                 parts.pop();
@@ -435,7 +410,7 @@ useEffect(() => {
                 if (before.length > 0) before += ' ';
             }
             processedText = '';
-        } else if (processedText.toLowerCase().includes('borrar línea') || processedText.toLowerCase().includes('borrar párrafo')) {
+        } else if (processedText.toLowerCase().includes('borrar lÃ­nea') || processedText.toLowerCase().includes('borrar pÃ¡rrafo')) {
             const lines = before.split('\n');
             if (lines.length > 0) {
                 lines.pop();
@@ -509,7 +484,7 @@ return (
                     Voice-Scribe <span className="text-[var(--accent)]">Pro</span>
                 </h1>
                 <span className="text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase opacity-80">
-                    Wayne Medical Division • Gotham City
+                    Wayne Medical Division â€¢ Gotham City
                 </span>
             </div>
             <div className="flex items-center space-x-3">
@@ -570,7 +545,7 @@ return (
                                 <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
                             </button>
                             <div className={`text-xs font-bold tracking-widest px-3 py-1.5 rounded-full border ${isListening ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'}`}>
-                                {isListening ? '● ANÁLISIS DE AUDIO ACTIVO' : 'SISTEMA PREPARADO'}
+                                {isListening ? 'â— ANÃLISIS DE AUDIO ACTIVO' : 'SISTEMA PREPARADO'}
                             </div>
                         </div>
                     </div>
@@ -606,10 +581,10 @@ return (
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">¿Añadir corrección?</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Â¿AÃ±adir correcciÃ³n?</p>
                             <div className="flex items-center space-x-2 text-xs font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded-lg mb-4">
                                 <span className="text-red-500 line-through truncate">{editSuggestion.original}</span>
-                                <span>→</span>
+                                <span>â†’</span>
                                 <span className="text-green-600 font-bold truncate">{editSuggestion.replacement}</span>
                             </div>
                             <div className="flex space-x-2">
@@ -646,14 +621,14 @@ return (
                             {isMuted ? (
                                 <div className="flex items-center space-x-2 text-red-500 text-sm font-medium animate-pulse">
                                     <AlertTriangle className="w-4 h-4" />
-                                    <span>Micrófono silenciado</span>
+                                    <span>MicrÃ³fono silenciado</span>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center space-y-1">
                                     {isLow && <div className="text-yellow-600 text-xs">Sube el volumen</div>}
                                     <div className={twMerge("px-3 py-1 rounded-full flex items-center gap-2 text-[10px] font-bold uppercase", quality === 'excellent' ? 'bg-green-50 text-green-600' : quality === 'good' ? 'bg-blue-50 text-blue-600' : quality === 'fair' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600')}>
                                         <div className={twMerge("w-1.5 h-1.5 rounded-full", quality === 'excellent' ? 'bg-green-500' : quality === 'good' ? 'bg-blue-500' : quality === 'fair' ? 'bg-yellow-500' : 'bg-red-500')} />
-                                        SNR {snr}dB • {quality === 'excellent' ? 'EXCELENTE' : quality === 'good' ? 'BUENO' : quality === 'fair' ? 'REGULAR' : 'MALO'}
+                                        SNR {snr}dB â€¢ {quality === 'excellent' ? 'EXCELENTE' : quality === 'good' ? 'BUENO' : quality === 'fair' ? 'REGULAR' : 'MALO'}
                                     </div>
                                 </div>
                             )}
@@ -685,12 +660,18 @@ return (
         <CorrectionReviewModal isOpen={!!reviewData} onClose={() => setReviewData(null)} originalText={reviewData?.original || ''} correctedText={reviewData?.corrected || ''} confidence={reviewData?.confidence} onApply={handleApplyReview} onSaveToDictionary={addReplacement} />
         <LearningDashboard isOpen={showDashboard} onClose={() => setShowDashboard(false)} />
         <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
-        {/* Theme Image (Light Mode Only) */}
-        {themeImage && !darkMode && (
+        {/* Theme Image (Dynamic) */}
+        {themeImage && (
             <img
                 src={themeImage}
                 alt="Theme Illustration"
-                className="fixed bottom-0 right-0 max-h-[500px] w-auto opacity-100 mix-blend-multiply pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10"
+                className={twMerge(
+                    "fixed bottom-0 right-0 max-h-[500px] w-auto pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10",
+                    // Frame/Border Styling
+                    "border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl",
+                    // Mode specific blending
+                    darkMode ? "opacity-40 mix-blend-luminosity" : "opacity-100 mix-blend-multiply"
+                )}
             />
         )}
     </div>
