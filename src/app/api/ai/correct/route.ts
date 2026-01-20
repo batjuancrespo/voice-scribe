@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
+// Cloudflare Pages requires Edge Runtime for dynamic routes
+export const runtime = 'edge';
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
