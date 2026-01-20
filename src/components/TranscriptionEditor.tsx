@@ -202,12 +202,20 @@ export function TranscriptionEditor() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isListening, startListening, stopListening, initAudio, cleanupAudio]);
 
-    // Dark mode effect
+    // Theme Image Logic
+    const [themeImage, setThemeImage] = useState<string | null>(null);
+
+    // Dark mode and Theme Image effect
     useEffect(() => {
         if (darkMode) {
             document.documentElement.classList.add('dark');
+            setThemeImage(null); // Clear image in dark mode (until we have dark mode images)
         } else {
             document.documentElement.classList.remove('dark');
+            // Randomly select one of the 3 light mode images
+            const images = ['light-1.jpg', 'light-2.jpg', 'light-3.jpg'];
+            const randomImage = images[Math.floor(Math.random() * images.length)];
+            setThemeImage(`/images/theme/${randomImage}`);
         }
     }, [darkMode]);
 
@@ -648,6 +656,14 @@ export function TranscriptionEditor() {
             <CorrectionReviewModal isOpen={!!reviewData} onClose={() => setReviewData(null)} originalText={reviewData?.original || ''} correctedText={reviewData?.corrected || ''} confidence={reviewData?.confidence} onApply={handleApplyReview} onSaveToDictionary={addReplacement} />
             <LearningDashboard isOpen={showDashboard} onClose={() => setShowDashboard(false)} />
             <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
+            {/* Theme Image (Light Mode Only) */}
+            {themeImage && !darkMode && (
+                <img
+                    src={themeImage}
+                    alt="Theme Illustration"
+                    className="fixed bottom-0 right-0 max-h-[500px] w-auto opacity-100 mix-blend-multiply pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10"
+                />
+            )}
         </div>
     );
 }
