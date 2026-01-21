@@ -545,7 +545,7 @@ return (
                                 <span className="text-sm font-medium">{isCorrecting ? 'Corrigiendo...' : 'Corregir con IA'}</span>
                             </button>
                             <div className={`text-xs font-bold tracking-widest px-3 py-1.5 rounded-full border ${isListening ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'}`}>
-                                {isListening ? 'â— ANÃLISIS DE AUDIO ACTIVO' : 'SISTEMA PREPARADO'}
+                                {isListening ? '● ANÁLISIS DE AUDIO ACTIVO' : 'SISTEMA PREPARADO'}
                             </div>
                         </div>
                     </div>
