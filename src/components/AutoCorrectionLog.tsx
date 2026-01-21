@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Check, RotateCcw, X, Clock } from 'lucide-react';
 import { useAutoCorrection, AutoCorrectionLog } from '@/hooks/useAutoCorrection';
 
@@ -13,16 +13,16 @@ export function AutoCorrectionLogModal({ isOpen, onClose }: AutoCorrectionLogPro
     const [logs, setLogs] = useState<AutoCorrectionLog[]>([]);
     const { getAutoCorrectLog, revertAutoCorrection } = useAutoCorrection();
 
+    const loadLogs = useCallback(async () => {
+        const data = await getAutoCorrectLog();
+        setLogs(data);
+    }, [getAutoCorrectLog]);
+
     useEffect(() => {
         if (isOpen) {
             loadLogs();
         }
-    }, [isOpen]);
-
-    const loadLogs = async () => {
-        const data = await getAutoCorrectLog();
-        setLogs(data);
-    };
+    }, [isOpen, loadLogs]);
 
     const handleRevert = async (logId: string) => {
         const success = await revertAutoCorrection(logId);

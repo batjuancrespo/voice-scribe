@@ -64,10 +64,6 @@ export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
 
     // 1. Check for IMPOSSIBLE LATERALITY (e.g., "Bazo derecho")
     // We scan for Noun + (words) + Side
-    const sidePatterns = [
-        { regex: /\bderech[oa]s?\b/, side: 'right' },
-        { regex: /\bizquierd[oa]s?\b/, side: 'left' }
-    ];
 
     Object.values(MEDICAL_NOUNS).forEach(organ => {
         if (organ.isPaired) return;
@@ -116,7 +112,6 @@ export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
         // Regex: Noun + (up to 3 words) + word ending in invalid suffix
         // e.g. "Útero" + "es" + "pequeña"
 
-        const suffix = rule.wrongAdj;
         // Looking for adjectives like: aumentado/a, distendido/a, ecogénico/a, heterogéneo/a
         // We only check for specific common radiological adjectives to be safe
         const adjectives = [
@@ -179,7 +174,6 @@ export function validateMedicalLogic(text: string): MedicalConsistencyIssue[] {
     // "No se observa el bazo" ... later "Bazo de tamaño normal"
     Object.values(MEDICAL_NOUNS).forEach(organ => {
         const negationPattern = new RegExp(`(?:no\\s+se\\s+(?:observa|visualiza|identifica|aprecia))\\s+(?:el|la)?\\s*\\b${organ.term}\\b`, 'gi');
-        const existencePattern = new RegExp(`\\b${organ.term}\\b`, 'gi');
 
         if (negationPattern.test(lowerText)) {
             // Find where it was negated

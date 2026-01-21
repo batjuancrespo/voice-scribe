@@ -54,7 +54,7 @@ export function getSpanishPhoneticCode(word: string): string {
     return deduplicated;
 }
 
-export function arePhoneticallySimilar(word1: string, word2: string, threshold: number = 0.9): boolean {
+export function arePhoneticallySimilar(word1: string, word2: string): boolean {
     const code1 = getSpanishPhoneticCode(word1);
     const code2 = getSpanishPhoneticCode(word2);
 

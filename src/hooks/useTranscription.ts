@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RADIOLOGY_HINTS } from '@/lib/radiologyDictionary';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface WindowsWithSpeech extends Window {
     SpeechRecognition: any;
     webkitSpeechRecognition: any;
@@ -31,29 +32,25 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         if (!recognitionRef.current) return;
 
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
-        const SpeechGrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
+        const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
 
-        if (SpeechGrammarList) {
+        if (GrammarList) {
             try {
                 const dictionaryTerms = Object.keys(userReplacements);
                 const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
 
-                // standard grammar (weight 1)
-                const grammarList = new SpeechGrammarList();
+                const grammarList = new GrammarList();
                 const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
                 grammarList.addFromString(grammar, 1);
 
-                // boosted grammar (weight 2) - Higher than 1 but not aggressive
                 if (boostedTerms.length > 0) {
                     const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
                     grammarList.addFromString(boostedGrammar, 2);
-                    console.log('[Grammar] Boosted terms (weight 2):', boostedTerms);
                 }
 
                 recognitionRef.current.grammars = grammarList;
-                console.log('[Grammar] Injected hints:', dictionaryTerms.length, 'custom terms');
-            } catch (e) {
-                console.warn('Failed to update grammar:', e);
+            } catch {
+                console.warn('Failed to update grammar');
             }
         }
     }, [userReplacements, boostedTerms]);
@@ -61,32 +58,29 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
     useEffect(() => {
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
         const SpeechRecognition = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-        const SpeechGrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList; // Keep this for initial check
+        const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
 
         if (!SpeechRecognition) {
-            setError('Web Speech API no está soportado en este navegador. Usa Google Chrome para mejor rendimiento.');
+            setError('Web Speech API no está soportado en este navegador.');
             return;
         }
 
         const recognition = new SpeechRecognition();
-
-        // OPTIMIZED CONFIGURATION FOR MEDICAL DICTATION
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'es-ES'; // Spanish (Spain) - best for medical terminology
-        recognition.maxAlternatives = 3; // Get multiple alternatives to choose best one
+        recognition.lang = 'es-ES';
+        recognition.maxAlternatives = 3;
 
-        // Add medical vocabulary hints (if supported) - Initial setup, will be updated by the other useEffect
-        if (SpeechGrammarList) {
+        if (GrammarList) {
             try {
                 const dictionaryTerms = Object.keys(userReplacements);
                 const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
-                const grammarList = new SpeechGrammarList();
+                const grammarList = new GrammarList();
                 const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
                 grammarList.addFromString(grammar, 1);
                 recognition.grammars = grammarList;
-            } catch (e) {
-                console.warn('Speech grammar not supported or failed to initialize, continuing without hints');
+            } catch {
+                console.warn('Grammar setup failed');
             }
         }
 
@@ -96,12 +90,10 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         };
 
         recognition.onend = () => {
-            // KEEP-ALIVE LOGIC: If the user intended to be listening but the browser stopped, restart.
             if (shouldBeListeningRef.current && recognitionRef.current) {
                 try {
                     recognitionRef.current.start();
-                } catch (e) {
-                    console.error('Failed to restart recognition:', e);
+                } catch {
                     setIsListening(false);
                 }
             } else {
@@ -111,28 +103,13 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
 
         recognition.onerror = (event: any) => {
             if (event.error === 'no-speech') {
-                // If it's just silence, we don't treat it as a hard error that stops the ref
-                // The onend event will trigger and restart if shouldBeListeningRef is true
-                console.log('Silence detected, keep-alive will restart.');
-            } else if (event.error === 'audio-capture') {
-                setError('No se pudo acceder al micrófono. Verifica los permisos.');
-                shouldBeListeningRef.current = false;
-            } else if (event.error === 'not-allowed') {
-                setError('Permisos de micrófono denegados. Ve a configuración del navegador.');
-                shouldBeListeningRef.current = false;
-            } else if (event.error === 'network') {
-                setError('Error de red. Verifica tu conexión.');
-                shouldBeListeningRef.current = false;
-            } else if (event.error === 'aborted') {
-                // Usually triggered by recognition.stop()
-            } else {
-                setError(`Error: ${event.error}`);
+                console.log('Silence detected');
+            } else if (['audio-capture', 'not-allowed', 'network'].includes(event.error)) {
+                setError(`Error de voz: ${event.error}`);
                 shouldBeListeningRef.current = false;
             }
 
-            if (!shouldBeListeningRef.current) {
-                setIsListening(false);
-            }
+            if (!shouldBeListeningRef.current) setIsListening(false);
         };
 
         recognition.onresult = (event: any) => {
@@ -140,55 +117,41 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             let interim = '';
             let maxConfidence = 0;
 
-            // List of medical terms to look for in alternatives
             const medicalTermsSet = new Set([
                 ...RADIOLOGY_HINTS.map(t => t.toLowerCase()),
                 ...Object.keys(userReplacements).map(t => t.toLowerCase())
             ]);
 
-            // Protected short words that should NOT be overridden by smart selection (Clinical Safety)
             const protectedShortWords = new Set(['no', 'sí', 'si', 'con', 'sin', 'en', 'de', 'del', 'al', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'la', 'el']);
 
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
 
                 if (result.isFinal) {
-                    // Default to the first alternative (highest confidence)
                     let bestTranscript = result[0].transcript;
                     let bestConfidence = result[0].confidence || 0;
-                    let foundMedicalMatch = false;
+                    let foundMatch = false;
 
-                    // Check if the primary alternative itself is a medical term
                     const primaryWords = bestTranscript.toLowerCase().trim().split(/\s+/);
-                    const primaryIsMedical = primaryWords.some((w: string) => medicalTermsSet.has(w));
-
-                    // If primary is protected (e.g. "punto"), SKIP smart selection
                     if (primaryWords.length === 1 && protectedShortWords.has(primaryWords[0])) {
-                        foundMedicalMatch = true; // Pretend we matched so we skip alternative scan
-                    } else if (primaryIsMedical) {
-                        foundMedicalMatch = true;
+                        foundMatch = true;
+                    } else if (primaryWords.some((w: string) => medicalTermsSet.has(w))) {
+                        foundMatch = true;
                     }
 
-                    // Scan alternatives for medical terms if the primary isn't one
-                    if (!foundMedicalMatch) {
+                    if (!foundMatch) {
                         for (let j = 1; j < Math.min(result.length, 3); j++) {
-                            const altTranscript = result[j].transcript;
-                            const altWords = altTranscript.toLowerCase().split(/\s+/);
-
-                            // If this alternative has a medical word and enough confidence (> 0.5)
+                            const altWords = result[j].transcript.toLowerCase().split(/\s+/);
                             if (altWords.some((w: string) => medicalTermsSet.has(w)) && result[j].confidence > 0.5) {
-                                console.log(`[Smart Selection] Prioritizing medical alternative: "${altTranscript}" over "${bestTranscript}"`);
-                                bestTranscript = altTranscript;
+                                bestTranscript = result[j].transcript;
                                 bestConfidence = result[j].confidence;
-                                foundMedicalMatch = true;
-                                break; // Take the first medical alternative found
+                                foundMatch = true;
+                                break;
                             }
                         }
                     }
 
-                    // Normal selection logic if no medical match found (already handled by defaulting to result[0])
-                    // But we still apply the "highest confidence" logic for the remaining alternatives if we didn't pick a medical one
-                    if (!foundMedicalMatch) {
+                    if (!foundMatch) {
                         for (let j = 1; j < Math.min(result.length, 3); j++) {
                             if (result[j].confidence > bestConfidence) {
                                 bestTranscript = result[j].transcript;
@@ -205,12 +168,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             }
 
             if (final) {
-                setLastEvent({
-                    text: final,
-                    isFinal: true,
-                    timestamp: Date.now(),
-                    confidence: maxConfidence
-                });
+                setLastEvent({ text: final, isFinal: true, timestamp: Date.now(), confidence: maxConfidence });
                 setInterimResult('');
             } else {
                 setInterimResult(interim);
@@ -218,7 +176,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         };
 
         recognitionRef.current = recognition;
-    }, []);
+    }, [userReplacements]);
 
     const startListening = useCallback(() => {
         if (recognitionRef.current && !isListening) {
@@ -226,10 +184,9 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 shouldBeListeningRef.current = true;
                 recognitionRef.current.start();
                 setIsListening(true);
-            } catch (e) {
-                console.error(e);
+            } catch {
                 shouldBeListeningRef.current = false;
-                setError('Error al iniciar el reconocimiento de voz');
+                setError('Error al iniciar voz');
             }
         }
     }, [isListening]);
@@ -242,12 +199,5 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         }
     }, []);
 
-    return {
-        isListening,
-        interimResult,
-        lastEvent,
-        error,
-        startListening,
-        stopListening
-    };
+    return { isListening, interimResult, lastEvent, error, startListening, stopListening };
 };

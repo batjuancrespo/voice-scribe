@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Check, ArrowRight, Undo2, Ban, BookPlus } from 'lucide-react';
+import { X, Check, BookPlus } from 'lucide-react';
 import { computeDiff, DiffChunk } from '@/lib/diffUtils';
 import { useErrorTracking } from '@/hooks/useErrorTracking';
 

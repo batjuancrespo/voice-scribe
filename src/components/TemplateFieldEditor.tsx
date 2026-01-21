@@ -84,7 +84,7 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
                 .eq('template_id', templateId);
 
             // Insert all current fields
-            const fieldsToInsert = fields.map(({ tempId, id, variants_input, ...field }) => {
+            const fieldsToInsert = fields.map(({ variants_input, ...field }) => {
                 // Handle potential undefined variants_input (legacy state/HMR)
                 const inputSrc = variants_input !== undefined ? variants_input : (field.variants || []).join('; ');
                 return {
@@ -128,7 +128,7 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
 
             {fields.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    No hay campos. Click "Añadir Campo" para empezar.
+                    No hay campos. Click &quot;Añadir Campo&quot; para empezar.
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -208,7 +208,7 @@ export function TemplateFieldEditor({ templateId, initialFields, onSave, onCance
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Variantes rápidas (separadas por punto y coma ';')
+                                            Variantes rápidas (separadas por punto y coma &apos;;&apos;)
                                         </label>
                                         <textarea
                                             value={field.variants_input ?? (field.variants || []).join('; ')}

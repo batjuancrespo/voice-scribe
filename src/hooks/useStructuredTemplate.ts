@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { useTranscription } from '@/hooks/useTranscription';
 import { parseTemplateText } from '@/lib/textProcessor';
 
 export interface TemplateField {
@@ -124,7 +123,7 @@ export const useStructuredTemplate = (
         // Build report text
         let report = '';
 
-        Object.entries(sections).forEach(([sectionName, sectionFields]) => {
+        Object.entries(sections).forEach(([, sectionFields]) => {
             // report += `${sectionName}:\n`; // Remove section header as requested
 
             sectionFields

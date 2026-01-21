@@ -125,7 +125,7 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                 <div className="space-y-3">
                     {selectedText && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-sm text-blue-800 dark:text-blue-200">
-                            <strong>Texto seleccionado:</strong> "{selectedText}"
+                            <strong>Texto seleccionado:</strong> &quot;{selectedText}&quot;
                         </div>
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -200,7 +200,7 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                             No hay correcciones guardadas.
                         </p>
                     )}
-                    {Object.entries(replacements).map(([orig, val]) => (
+                    {Object.entries(replacements).map(([orig]) => (
                         <div key={orig} className="flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group">
                             <div className="flex-1">
                                 <span className="font-mono text-gray-700 dark:text-gray-300">

@@ -6,7 +6,7 @@ import { useStructuredTemplate } from '@/hooks/useStructuredTemplate';
 import { useVocabulary } from '@/hooks/useVocabulary';
 import { processTranscriptSegment } from '@/lib/textProcessor';
 import { TemplateField as DbTemplateField } from '@/hooks/useTemplates';
-import { Mic, X, RotateCcw, Copy, Check, FileText, Square } from 'lucide-react';
+import { Mic, X, RotateCcw, Check, FileText, Square } from 'lucide-react';
 import { parseTemplateText } from '@/lib/textProcessor';
 
 interface StructuredTemplateEditorProps {
@@ -82,7 +82,7 @@ export function StructuredTemplateEditor({ fields: initialDbFields, templateName
                 lastProcessedTimestamp.current = lastEvent.timestamp;
             }
         }
-    }, [lastEvent, activeFieldId, fields, updateField]);
+    }, [lastEvent, activeFieldId, fields, updateField, replacements]);
 
     // Close context menu on click elsewhere
     useEffect(() => {

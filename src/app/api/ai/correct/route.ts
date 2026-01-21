@@ -7,7 +7,8 @@ export const runtime = 'edge';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        let { text, apiKey, userDictionary, model = 'gemini-2.5-flash', mode = 'standard' } = body;
+        const { text, userDictionary, model = 'gemini-2.5-flash', mode = 'standard' } = body;
+        let { apiKey } = body;
 
         // Fallback to server-side API Key if not provided by client
         if (!apiKey) {
@@ -111,10 +112,11 @@ CORRECTED OUTPUT:
 
         return NextResponse.json({ correctedText });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to correct text';
         console.error('AI Correction Error:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to correct text' },
+            { error: errorMessage },
             { status: 500 }
         );
     }

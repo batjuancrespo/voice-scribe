@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { BarChart, TrendingUp, AlertTriangle, Zap, CheckCircle2, X } from 'lucide-react';
 import { useLearningStats, WeeklyProgress, GlobalStats } from '@/hooks/useLearningStats';
 import { useErrorTracking, LearningStat } from '@/hooks/useErrorTracking';
@@ -12,42 +12,39 @@ interface LearningDashboardProps {
 }
 
 export function LearningDashboard({ isOpen, onClose }: LearningDashboardProps) {
-    const { getWeeklyProgress, getGlobalStats, getMostUsedTerms } = useLearningStats();
+    const { getWeeklyProgress, getGlobalStats } = useLearningStats();
     const { getFrequentErrors, markAsAutoLearned, ignoreErrorPattern } = useErrorTracking();
     const { addReplacement } = useVocabulary();
 
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([]);
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
     const [topErrors, setTopErrors] = useState<LearningStat[]>([]);
-    const [mostUsed, setMostUsed] = useState<{ term: string, count: number }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadData();
-        }
-    }, [isOpen]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [progress, stats, errors, terms] = await Promise.all([
+            const [progress, stats, errors] = await Promise.all([
                 getWeeklyProgress(),
                 getGlobalStats(),
-                getFrequentErrors(5),
-                getMostUsedTerms(5)
+                getFrequentErrors(5)
             ]);
 
             setWeeklyProgress(progress);
             setGlobalStats(stats);
             setTopErrors(errors);
-            setMostUsed(terms);
         } catch (error) {
             console.error("Failed to load dashboard data", error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [getWeeklyProgress, getGlobalStats, getFrequentErrors]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadData();
+        }
+    }, [isOpen, loadData]);
 
     const handleAutoLearn = async (statId: string, pattern: string, correction: string) => {
         // 1. Mark as learned in stats (for UI/tracking)

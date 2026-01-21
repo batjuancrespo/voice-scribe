@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 interface AudioLevelHook {
     audioLevel: number; // 0-100
@@ -26,7 +26,8 @@ export const useAudioLevel = (): AudioLevelHook => {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
             // Create audio context
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            const audioContext = new AudioContextClass();
             const analyser = audioContext.createAnalyser();
             const microphone = audioContext.createMediaStreamSource(stream);
 

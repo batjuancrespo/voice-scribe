@@ -4,6 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Save, Key, X, RefreshCw, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
+interface GeminiModel {
+    name: string;
+    displayName: string;
+    description: string;
+    supportedGenerationMethods: string[];
+}
+
 interface AiSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -34,13 +41,13 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
             const data = await response.json();
             if (data.models) {
-                const validModels = data.models
-                    .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-                    .map((m: any) => ({
+                const validModels = (data.models as GeminiModel[])
+                    .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+                    .map((m) => ({
                         id: m.name.replace('models/', ''),
                         name: m.displayName || m.name
                     }))
-                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+                    .sort((a, b) => a.name.localeCompare(b.name));
 
                 if (validModels.length > 0) {
                     setAvailableModels(validModels);

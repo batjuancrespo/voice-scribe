@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Mic, Play, SkipForward, Trophy, TrendingUp, Target, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Mic, Play, SkipForward, Trophy, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { useTrainingSession, TrainingTerm } from '@/hooks/useTrainingSession';
 import { useLearningStats } from '@/hooks/useLearningStats';
 import { RADIOLOGY_HINTS } from '@/lib/radiologyDictionary';

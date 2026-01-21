@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export interface CorrectionRecord {
@@ -118,7 +118,7 @@ export function useErrorTracking() {
 
             // Suggest learning if seen 3+ times and not already learned
             return data.frequency >= 3 && !data.auto_learned;
-        } catch (error) {
+        } catch {
             return false;
         }
     }, []);

@@ -22,7 +22,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
     const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
     const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'create-structured' | 'edit-structured'>('list');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
-    const [templateType, setTemplateType] = useState<'simple' | 'structured'>('simple');
+    const [, setTemplateType] = useState<'simple' | 'structured'>('simple');
     const [filterType, setFilterType] = useState<'all' | 'structured'>('structured');
 
     // Get unique categories from templates + default categories
@@ -331,7 +331,7 @@ export function TemplateManager({ onInsert, onInsertStructured, onClose }: Templ
                             <TemplateFieldEditor
                                 templateId={editingTemplate.id}
                                 initialFields={editingTemplate.fields || []}
-                                onSave={(fields) => {
+                                onSave={() => {
                                     setEditingTemplate(null);
                                     setName('');
                                     setCategory('Técnica');
