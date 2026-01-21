@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Save, Key, X, RefreshCw } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AiSettingsModalProps {
     isOpen: boolean;
@@ -53,31 +54,62 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
         }
     }, []);
 
-    // Load initial state
+    // Load initial state from Supabase and localStorage
     useEffect(() => {
         if (isOpen) {
-            const storedKey = localStorage.getItem('gemini_api_key');
-            const storedModel = localStorage.getItem('gemini_model');
+            const loadSettings = async () => {
+                // Try to load from Supabase first
+                const { data: { user } } = await supabase.auth.getUser();
 
-            if (storedKey) {
-                setApiKey(storedKey);
-                // Auto-fetch using stored key
-                fetchModels(storedKey);
-            }
-            if (storedModel) setModel(storedModel);
+                if (user?.user_metadata) {
+                    const savedModel = user.user_metadata.gemini_model;
+                    if (savedModel) {
+                        setModel(savedModel);
+                        localStorage.setItem('gemini_model', savedModel);
+                    }
+                }
+
+                // Load API key from localStorage (never store in Supabase for security)
+                const storedKey = localStorage.getItem('gemini_api_key');
+                const storedModel = localStorage.getItem('gemini_model');
+
+                if (storedKey) {
+                    setApiKey(storedKey);
+                    fetchModels(storedKey);
+                }
+                if (storedModel && !user?.user_metadata?.gemini_model) {
+                    setModel(storedModel);
+                }
+            };
+
+            loadSettings();
         }
     }, [isOpen, fetchModels]);
 
-    const handleSave = () => {
-        // Clear key if empty (server fallback), otherwise save trimmed key
+    const handleSave = async () => {
+        // Save API key to localStorage only (never to Supabase for security)
         if (apiKey.trim()) {
             localStorage.setItem('gemini_api_key', apiKey.trim());
         } else {
             localStorage.removeItem('gemini_api_key');
         }
 
-        // Always save the model
+        // Save model to both localStorage and Supabase
         localStorage.setItem('gemini_model', model);
+
+        // Sync to Supabase user metadata
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.auth.updateUser({
+                    data: { gemini_model: model }
+                });
+            }
+        } catch (error) {
+            console.error('Error saving model preference to Supabase:', error);
+            // Continue anyway - localStorage is saved
+        }
+
         onClose();
     };
 
