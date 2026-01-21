@@ -20,7 +20,7 @@ import { CorrectionReviewModal } from './CorrectionReviewModal';
 import { LearningDashboard } from './LearningDashboard';
 import { TrainingMode } from './TrainingMode';
 import { Mic, Square, Trash2, Copy, Check, Sparkles, Wand2, LogOut, AlertTriangle, BookPlus, X, Sun, Moon, FileText, Book, TrendingUp, Target } from 'lucide-react';
-import { extractCorrectionPairs } from '@/lib/diffUtils';
+
 import { twMerge } from 'tailwind-merge';
 
 export function TranscriptionEditor() {
@@ -59,8 +59,8 @@ export function TranscriptionEditor() {
 
     const { templates } = useTemplates();
     const { audioLevel, isLow, isMuted, initialize: initAudio, cleanup: cleanupAudio } = useAudioLevel();
-    const { quality, snr, recommendation } = useAudioQuality(isListening);
-    const { issues: medicalIssues } = useMedicalLogic(fullText);
+    const { quality, snr } = useAudioQuality(isListening);
+    useMedicalLogic(fullText);
 
     const [showSettings, setShowSettings] = useState(false);
     const [showAiSettings, setShowAiSettings] = useState(false);
@@ -346,7 +346,6 @@ export function TranscriptionEditor() {
     };
 
     const handleApplyReview = (finalText: string) => {
-        const originalText = reviewData?.original || '';
 
         // Implicit Learning (Quality 8.4) - REMOVED PER USER REQUEST (Supervised only)
         // Previous logic automatically added corrections to dictionary. Now relying on manual addition in Review Modal.
@@ -454,7 +453,7 @@ export function TranscriptionEditor() {
 
             setTimeout(() => { isAutoChangeRef.current = false; }, 0);
         }
-    }, [lastEvent]);
+    }, [lastEvent, activeStructuredTemplate, replacements, templates, handleInsertTemplate]);
 
     // Sync DOM selection
     useEffect(() => {
@@ -474,7 +473,7 @@ export function TranscriptionEditor() {
             cleanupAudio();
         }
         return () => cleanupAudio();
-    }, [isListening]);
+    }, [isListening, initAudio, cleanupAudio]);
 
     return (
         <div className="flex flex-col h-full max-w-5xl mx-auto p-6 space-y-6">
@@ -662,17 +661,16 @@ export function TranscriptionEditor() {
             <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
             {/* Theme Image (Dynamic) */}
             {themeImage && (
-                <img
-                    src={themeImage}
-                    alt="Theme Illustration"
-                    className={twMerge(
-                        "fixed bottom-0 right-0 max-h-[500px] w-auto pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10",
-                        // Frame/Border Styling
-                        "border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl",
-                        // Mode specific blending
-                        darkMode ? "opacity-40 mix-blend-luminosity" : "opacity-100 mix-blend-multiply"
-                    )}
-                />
+                <div className="fixed bottom-0 right-0 max-h-[500px] w-auto pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10 border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl overflow-hidden">
+                    <img
+                        src={themeImage}
+                        alt="Theme Illustration"
+                        className={twMerge(
+                            "w-auto h-auto",
+                            darkMode ? "opacity-40 mix-blend-luminosity" : "opacity-100 mix-blend-multiply"
+                        )}
+                    />
+                </div>
             )}
         </div>
     );

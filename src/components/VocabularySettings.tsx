@@ -10,7 +10,7 @@ interface VocabularySettingsProps {
 }
 
 export function VocabularySettings({ selectedText, onCorrect }: VocabularySettingsProps) {
-    const { replacements, addReplacement, removeReplacement, updateReplacement } = useVocabulary();
+    const { replacements, addReplacement, deleteReplacement, updateReplacement } = useVocabulary();
     const [original, setOriginal] = useState('');
     const [replacement, setReplacement] = useState('');
     const [editingEntry, setEditingEntry] = useState<{ original: string; replacement: string } | null>(null);
@@ -220,7 +220,7 @@ export function VocabularySettings({ selectedText, onCorrect }: VocabularySettin
                                     <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
-                                    onClick={() => removeReplacement(orig)}
+                                    onClick={() => deleteReplacement(orig)}
                                     className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                     title="Eliminar"
                                 >
