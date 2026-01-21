@@ -661,12 +661,12 @@ export function TranscriptionEditor() {
             <TrainingMode isOpen={showTraining} onClose={() => setShowTraining(false)} isListening={isListening} transcript={lastEvent?.text || ''} onStartListening={() => { if (!isListening) { startListening(); initAudio(); } }} onStopListening={() => { if (isListening) { stopListening(); cleanupAudio(); } }} onComplete={(results) => { results.forEach(r => addReplacement(r.error, r.correct)); }} />
             {/* Theme Image (Dynamic) */}
             {themeImage && (
-                <div className="fixed bottom-0 right-0 max-h-[500px] w-auto pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10 border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl overflow-hidden">
+                <div className="fixed bottom-0 right-0 pointer-events-none -z-10 animate-in fade-in duration-1000 slide-in-from-bottom-10 border-4 border-white/50 dark:border-white/10 shadow-2xl rounded-tl-3xl overflow-hidden">
                     <img
                         src={themeImage}
                         alt="Theme Illustration"
                         className={twMerge(
-                            "w-auto h-auto",
+                            "max-h-[420px] w-auto block object-bottom",
                             darkMode ? "opacity-40 mix-blend-luminosity" : "opacity-100 mix-blend-multiply"
                         )}
                     />
