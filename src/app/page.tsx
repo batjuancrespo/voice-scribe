@@ -16,11 +16,6 @@ export default function Home() {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setLoading(false);
-
-            // Sync user preferences from Supabase to localStorage
-            if (session?.user?.user_metadata?.gemini_model) {
-                localStorage.setItem('gemini_model', session.user.user_metadata.gemini_model);
-            }
         });
 
         // Listen for auth changes
@@ -29,11 +24,6 @@ export default function Home() {
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setLoading(false);
-
-            // Sync user preferences on auth change
-            if (session?.user?.user_metadata?.gemini_model) {
-                localStorage.setItem('gemini_model', session.user.user_metadata.gemini_model);
-            }
         });
 
         return () => subscription.unsubscribe();

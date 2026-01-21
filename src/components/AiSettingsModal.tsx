@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Save, Key, X, RefreshCw } from 'lucide-react';
+import { Sparkles, Save, Key, X, RefreshCw, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
-import { supabase } from '@/lib/supabaseClient';
 
 interface AiSettingsModalProps {
     isOpen: boolean;
@@ -14,6 +13,7 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
     const [apiKey, setApiKey] = useState('');
     const [model, setModel] = useState('gemini-2.5-flash');
     const [isVisible, setIsVisible] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
     // Default safe fallback models
     const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([
@@ -54,63 +54,38 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
         }
     }, []);
 
-    // Load initial state from Supabase and localStorage
+    // Load initial state
     useEffect(() => {
         if (isOpen) {
-            const loadSettings = async () => {
-                // Try to load from Supabase first
-                const { data: { user } } = await supabase.auth.getUser();
+            const storedKey = localStorage.getItem('gemini_api_key');
+            const storedModel = localStorage.getItem('gemini_model');
 
-                if (user?.user_metadata) {
-                    const savedModel = user.user_metadata.gemini_model;
-                    if (savedModel) {
-                        setModel(savedModel);
-                        localStorage.setItem('gemini_model', savedModel);
-                    }
-                }
-
-                // Load API key from localStorage (never store in Supabase for security)
-                const storedKey = localStorage.getItem('gemini_api_key');
-                const storedModel = localStorage.getItem('gemini_model');
-
-                if (storedKey) {
-                    setApiKey(storedKey);
-                    fetchModels(storedKey);
-                }
-                if (storedModel && !user?.user_metadata?.gemini_model) {
-                    setModel(storedModel);
-                }
-            };
-
-            loadSettings();
+            if (storedKey) {
+                setApiKey(storedKey);
+                // Auto-fetch using stored key
+                fetchModels(storedKey);
+            }
+            if (storedModel) setModel(storedModel);
+            setIsSaved(false);
         }
     }, [isOpen, fetchModels]);
 
-    const handleSave = async () => {
-        // Save API key to localStorage only (never to Supabase for security)
+    const handleSave = () => {
+        // Clear key if empty (server fallback), otherwise save trimmed key
         if (apiKey.trim()) {
             localStorage.setItem('gemini_api_key', apiKey.trim());
         } else {
             localStorage.removeItem('gemini_api_key');
         }
 
-        // Save model to both localStorage and Supabase
+        // Always save the model
         localStorage.setItem('gemini_model', model);
 
-        // Sync to Supabase user metadata
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await supabase.auth.updateUser({
-                    data: { gemini_model: model }
-                });
-            }
-        } catch (error) {
-            console.error('Error saving model preference to Supabase:', error);
-            // Continue anyway - localStorage is saved
-        }
-
-        onClose();
+        setIsSaved(true);
+        setTimeout(() => {
+            setIsSaved(false);
+            onClose();
+        }, 1000);
     };
 
     if (!isOpen) return null;
@@ -189,10 +164,14 @@ export function AiSettingsModal({ isOpen, onClose }: AiSettingsModalProps) {
                     <div className="pt-4 pb-2">
                         <button
                             onClick={handleSave}
-                            className="w-full py-5 bg-[var(--accent)] text-black rounded-xl hover:scale-[1.02] active:scale-[0.98] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(234,179,8,0.4)] flex justify-center items-center"
+                            disabled={isSaved}
+                            className={twMerge(
+                                "w-full py-5 rounded-xl hover:scale-[1.02] active:scale-[0.98] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(234,179,8,0.4)] flex justify-center items-center",
+                                isSaved ? "bg-green-500 text-white shadow-[0_0_30px_rgba(34,197,94,0.4)]" : "bg-[var(--accent)] text-black"
+                            )}
                         >
-                            <Save className="w-6 h-6 mr-3" />
-                            Inicializar Núcleo
+                            {isSaved ? <Check className="w-6 h-6 mr-3" /> : <Save className="w-6 h-6 mr-3" />}
+                            {isSaved ? "NÚCLEO INICIALIZADO" : "Inicializar Núcleo"}
                         </button>
                     </div>
                 </div>
