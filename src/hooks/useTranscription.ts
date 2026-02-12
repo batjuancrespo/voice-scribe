@@ -52,8 +52,8 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 console.warn("Pre-start abort error:", e);
             }
             recognitionRef.current = null;
-            // Small buffer to let browser clear resources
-            await new Promise(resolve => setTimeout(resolve, 50));
+            // Buffer to let browser/cloud service clear resources
+            await new Promise(resolve => setTimeout(resolve, 400));
         }
 
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
@@ -84,15 +84,18 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
 
                     const processTerm = (term: string) => {
                         term.split(/[\s\-_/]+/).forEach(word => {
+                            // Only alphabetic characters (Spanish focused)
                             const sanitized = word.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, '').toLowerCase();
-                            if (sanitized.length > 2) words.add(sanitized);
+                            if (sanitized.length > 3) words.add(sanitized);
                         });
                     };
 
                     Object.keys(userReplacements).forEach(processTerm);
                     RADIOLOGY_HINTS.forEach(processTerm);
 
-                    const allSanitized = Array.from(words);
+                    // LIMIT GRAMMAR SIZE: Too many terms cause "network" errors in Chrome servers.
+                    // 150 words is a conservative limit for stable performance.
+                    const allSanitized = Array.from(words).slice(0, 150);
 
                     if (allSanitized.length > 0) {
                         const grammarList = new GrammarList();
