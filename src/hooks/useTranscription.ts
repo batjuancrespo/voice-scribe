@@ -58,7 +58,6 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
 
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
         const SpeechRecognition = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-        const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
 
         if (!SpeechRecognition) {
             setError('Web Speech API no está soportado en este navegador.');
@@ -73,25 +72,8 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             recognition.lang = 'es-ES';
             recognition.maxAlternatives = 3;
 
-            // 3. SETUP GRAMMAR (Once per session)
-            if (GrammarList) {
-                try {
-                    const dictionaryTerms = Object.keys(userReplacements);
-                    const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
-                    const grammarList = new GrammarList();
-                    const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
-                    grammarList.addFromString(grammar, 1);
-
-                    if (boostedTerms.length > 0) {
-                        const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
-                        grammarList.addFromString(boostedGrammar, 2);
-                    }
-
-                    recognition.grammars = grammarList;
-                } catch (e) {
-                    console.warn('Grammar setup failed', e);
-                }
-            }
+            // 3. SETUP (Grammar list removed as it often causes 'network' errors in Chrome when complex/malformed)
+            // The cloud speech service already has an excellent Spanish medical model.
 
             // 4. EVENT HANDLERS
             recognition.onstart = () => {
@@ -103,9 +85,6 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                 // If we should still be listening, restart (Continuous Mode)
                 if (shouldBeListeningRef.current) {
                     try {
-                        // Re-use same instance for continuity if it just stopped due to silence
-                        // But if it stopped due to error, we might need a full restart logic? 
-                        // For now, simpler is better: just .start() again
                         recognition.start();
                     } catch (e: any) {
                         console.log("Auto-restart log:", e);
@@ -144,7 +123,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                         let bestTranscript = result[0].transcript;
                         let bestConfidence = result[0].confidence || 0;
 
-                        // Basic post-processing (same logic as before)
+                        // Basic post-processing
                         let foundMatch = false;
                         const primaryWords = bestTranscript.toLowerCase().trim().split(/\s+/);
                         if (primaryWords.length === 1 && protectedShortWords.has(primaryWords[0])) {
@@ -189,20 +168,16 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             shouldBeListeningRef.current = false;
             setError('Error al iniciar servicio de voz');
         }
-    }, [userReplacements, boostedTerms]); // Re-create if grammar deps change (optional, but safer to match old behavior logic)
+    }, [userReplacements, boostedTerms]);
 
     const stopListening = useCallback(() => {
         shouldBeListeningRef.current = false;
         if (recognitionRef.current) {
             try {
-                // Remove onend to prevent auto-restart logic during manual stop
-                // recognitionRef.current.onend = null; 
-                // Actually, we want onend to fire to set isListening(false), but we set shouldBeListeningRef=false above so it handles it.
                 recognitionRef.current.abort();
             } catch (e) {
                 console.warn("Stop error:", e);
             }
-            // We don't nullify immediately, let onend do it or next start do it
         }
     }, []);
 
