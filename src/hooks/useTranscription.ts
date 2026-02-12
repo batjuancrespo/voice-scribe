@@ -93,8 +93,10 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             if (shouldBeListeningRef.current && recognitionRef.current) {
                 try {
                     recognitionRef.current.start();
-                } catch {
-                    setIsListening(false);
+                } catch (e: any) {
+                    // If it's already started (InvalidStateError), that's fine, we wanted it started.
+                    // Only stop if it's a real error we can't recover from.
+                    console.log("Auto-restart caught error (likely safe):", e);
                 }
             } else {
                 setIsListening(false);
@@ -181,12 +183,17 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
     const startListening = useCallback(() => {
         if (recognitionRef.current && !isListening) {
             try {
+                // Determine if we need to reset the instance (optional, but aborting is safer)
+                // Aborting first clears any "stopping" or "zombie" states from previous sessions
+                recognitionRef.current.abort();
+
                 shouldBeListeningRef.current = true;
                 recognitionRef.current.start();
                 setIsListening(true);
-            } catch {
+            } catch (e) {
+                console.error("Start listening error:", e);
                 shouldBeListeningRef.current = false;
-                setError('Error al iniciar voz');
+                setError('Error al iniciar voz (intenta recargar)');
             }
         }
     }, [isListening]);
