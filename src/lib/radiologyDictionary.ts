@@ -594,5 +594,15 @@ export const RADIOLOGY_HINTS = [
     // Toracoabdominal y Pélvico
     "suprahepática", "portal", "uncinado", "mesorrecto", "prostática", "Douglas",
     "hepatópeto", "hepatófugo", "nefrográfica", "corticomedular", "excretora",
-    "ADC", "difusión", "restricción"
+    "ADC", "difusión", "restricción",
+
+    // Abdominal Adicionales (Prioridad 1)
+    "colecisto", "retroperitoneo", "paracólico", "retrocecal", "portosistémico", "varices",
+    "hidronefrosis", "ureterohidronefrosis", "pelvicalicial", "diverticulosis", "epiplón",
+    "omental", "paracentesis", "peristaltismo", "borborigmo", "meteorismo", "íleo",
+
+    // Torácicos Adicionales (Prioridad 2)
+    "neumonía", "atelectasia", "condensación", "infiltrado", "bronquio", "cisura",
+    "adenopatía", "linfoadenopatía", "paratraqueal", "subcarinal", "hiliar", "enfisema",
+    "bulla", "parénquima", "acinar", "intersticio", "septal", "alveolar"
 ];

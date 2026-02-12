@@ -78,17 +78,26 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
 
             if (GrammarList) {
                 try {
-                    // Filter terms: Chrome's JSGF implementation often fails with spaces or complex punctuation
-                    const sanitize = (term: string) => term.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g, '');
+                    // Filter terms: Chrome's JSGF implementation fails with spaces or complex punctuation.
+                    // We split multi-word terms into individual words to boost them separately while keeping the grammar valid.
+                    const words = new Set<string>();
 
-                    const dictionaryTerms = Object.keys(userReplacements).map(sanitize).filter(t => t.length > 2);
-                    const hintTerms = RADIOLOGY_HINTS.map(sanitize).filter(t => t.length > 2);
-                    const allSanitized = Array.from(new Set([...hintTerms, ...dictionaryTerms]));
+                    const processTerm = (term: string) => {
+                        term.split(/[\s\-_/]+/).forEach(word => {
+                            const sanitized = word.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, '').toLowerCase();
+                            if (sanitized.length > 2) words.add(sanitized);
+                        });
+                    };
+
+                    Object.keys(userReplacements).forEach(processTerm);
+                    RADIOLOGY_HINTS.forEach(processTerm);
+
+                    const allSanitized = Array.from(words);
 
                     if (allSanitized.length > 0) {
                         const grammarList = new GrammarList();
-                        // Use a simpler grammar string format
-                        const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allSanitized.join(' | ')};`;
+                        // JSGF rule with individual medical keywords
+                        const grammar = `#JSGF V1.0; grammar radiology; public <word> = ${allSanitized.join(' | ')};`;
                         grammarList.addFromString(grammar, 1);
                         recognition.grammars = grammarList;
                     }
