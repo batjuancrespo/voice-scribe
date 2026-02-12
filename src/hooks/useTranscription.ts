@@ -72,8 +72,30 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             recognition.lang = 'es-ES';
             recognition.maxAlternatives = 3;
 
-            // 3. SETUP (Grammar list removed as it often causes 'network' errors in Chrome when complex/malformed)
-            // The cloud speech service already has an excellent Spanish medical model.
+            // 3. SETUP GRAMMAR (Sanitized to avoid 'network' errors)
+            const windowWithSpeech = window as unknown as WindowsWithSpeech;
+            const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
+
+            if (GrammarList) {
+                try {
+                    // Filter terms: Chrome's JSGF implementation often fails with spaces or complex punctuation
+                    const sanitize = (term: string) => term.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g, '');
+
+                    const dictionaryTerms = Object.keys(userReplacements).map(sanitize).filter(t => t.length > 2);
+                    const hintTerms = RADIOLOGY_HINTS.map(sanitize).filter(t => t.length > 2);
+                    const allSanitized = Array.from(new Set([...hintTerms, ...dictionaryTerms]));
+
+                    if (allSanitized.length > 0) {
+                        const grammarList = new GrammarList();
+                        // Use a simpler grammar string format
+                        const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allSanitized.join(' | ')};`;
+                        grammarList.addFromString(grammar, 1);
+                        recognition.grammars = grammarList;
+                    }
+                } catch (e) {
+                    console.warn('Grammar skipped for stability:', e);
+                }
+            }
 
             // 4. EVENT HANDLERS
             recognition.onstart = () => {
