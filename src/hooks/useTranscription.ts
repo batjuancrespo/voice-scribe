@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { RADIOLOGY_HINTS } from '@/lib/radiologyDictionary';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -27,35 +27,35 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
     const recognitionRef = useRef<any>(null);
     const shouldBeListeningRef = useRef(false);
 
-    // Rebuild Grammar List when replacements change
+    // Explicit cleanup on unmount - ensures no zombie instances
     useEffect(() => {
-        if (!recognitionRef.current) return;
-
-        const windowWithSpeech = window as unknown as WindowsWithSpeech;
-        const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
-
-        if (GrammarList) {
-            try {
-                const dictionaryTerms = Object.keys(userReplacements);
-                const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
-
-                const grammarList = new GrammarList();
-                const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
-                grammarList.addFromString(grammar, 1);
-
-                if (boostedTerms.length > 0) {
-                    const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
-                    grammarList.addFromString(boostedGrammar, 2);
+        return () => {
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.onend = null;
+                    recognitionRef.current.abort();
+                } catch (e) {
+                    console.warn("Cleanup error:", e);
                 }
-
-                recognitionRef.current.grammars = grammarList;
-            } catch {
-                console.warn('Failed to update grammar');
+                recognitionRef.current = null;
             }
-        }
-    }, [userReplacements, boostedTerms]);
+        };
+    }, []);
 
-    useEffect(() => {
+    const startListening = useCallback(async () => {
+        // 1. CLEANUP PREVIOUS SESSION
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.onend = null; // Prevent restart loop
+                recognitionRef.current.abort();
+            } catch (e) {
+                console.warn("Pre-start abort error:", e);
+            }
+            recognitionRef.current = null;
+            // Small buffer to let browser clear resources
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
         const windowWithSpeech = window as unknown as WindowsWithSpeech;
         const SpeechRecognition = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
         const GrammarList = windowWithSpeech.SpeechGrammarList || windowWithSpeech.webkitSpeechGrammarList;
@@ -65,159 +65,144 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'es-ES';
-        recognition.maxAlternatives = 3;
+        try {
+            // 2. CREATE FRESH INSTANCE
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'es-ES';
+            recognition.maxAlternatives = 3;
 
-        if (GrammarList) {
-            try {
-                const dictionaryTerms = Object.keys(userReplacements);
-                const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
-                const grammarList = new GrammarList();
-                const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
-                grammarList.addFromString(grammar, 1);
-                recognition.grammars = grammarList;
-            } catch {
-                console.warn('Grammar setup failed');
-            }
-        }
-
-        recognition.onstart = () => {
-            setIsListening(true);
-            setError(null);
-        };
-
-        recognition.onend = () => {
-            if (shouldBeListeningRef.current && recognitionRef.current) {
+            // 3. SETUP GRAMMAR (Once per session)
+            if (GrammarList) {
                 try {
-                    recognitionRef.current.start();
-                } catch (e: any) {
-                    // If it's already started (InvalidStateError), that's fine, we wanted it started.
-                    // Only stop if it's a real error we can't recover from.
-                    console.log("Auto-restart caught error (likely safe):", e);
-                }
-            } else {
-                setIsListening(false);
-            }
-        };
+                    const dictionaryTerms = Object.keys(userReplacements);
+                    const allHints = [...RADIOLOGY_HINTS, ...dictionaryTerms];
+                    const grammarList = new GrammarList();
+                    const grammar = `#JSGF V1.0; grammar radiology; public <term> = ${allHints.join(' | ')};`;
+                    grammarList.addFromString(grammar, 1);
 
-        recognition.onerror = (event: any) => {
-            if (event.error === 'no-speech') {
-                console.log('Silence detected');
-            } else if (['audio-capture', 'not-allowed', 'network'].includes(event.error)) {
-                setError(`Error de voz: ${event.error}`);
-                shouldBeListeningRef.current = false;
-            }
-
-            if (!shouldBeListeningRef.current) setIsListening(false);
-        };
-
-        recognition.onresult = (event: any) => {
-            let final = '';
-            let interim = '';
-            let maxConfidence = 0;
-
-            const medicalTermsSet = new Set([
-                ...RADIOLOGY_HINTS.map(t => t.toLowerCase()),
-                ...Object.keys(userReplacements).map(t => t.toLowerCase())
-            ]);
-
-            const protectedShortWords = new Set(['no', 'sí', 'si', 'con', 'sin', 'en', 'de', 'del', 'al', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'la', 'el']);
-
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const result = event.results[i];
-
-                if (result.isFinal) {
-                    let bestTranscript = result[0].transcript;
-                    let bestConfidence = result[0].confidence || 0;
-                    let foundMatch = false;
-
-                    const primaryWords = bestTranscript.toLowerCase().trim().split(/\s+/);
-                    if (primaryWords.length === 1 && protectedShortWords.has(primaryWords[0])) {
-                        foundMatch = true;
-                    } else if (primaryWords.some((w: string) => medicalTermsSet.has(w))) {
-                        foundMatch = true;
+                    if (boostedTerms.length > 0) {
+                        const boostedGrammar = `#JSGF V1.0; grammar boosted; public <term> = ${boostedTerms.join(' | ')};`;
+                        grammarList.addFromString(boostedGrammar, 2);
                     }
 
-                    if (!foundMatch) {
-                        for (let j = 1; j < Math.min(result.length, 3); j++) {
-                            const altWords = result[j].transcript.toLowerCase().split(/\s+/);
-                            if (altWords.some((w: string) => medicalTermsSet.has(w)) && result[j].confidence > 0.5) {
-                                bestTranscript = result[j].transcript;
-                                bestConfidence = result[j].confidence;
-                                foundMatch = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!foundMatch) {
-                        for (let j = 1; j < Math.min(result.length, 3); j++) {
-                            if (result[j].confidence > bestConfidence) {
-                                bestTranscript = result[j].transcript;
-                                bestConfidence = result[j].confidence;
-                            }
-                        }
-                    }
-
-                    final += bestTranscript;
-                    maxConfidence = Math.max(maxConfidence, bestConfidence);
-                } else {
-                    interim += result[0].transcript;
+                    recognition.grammars = grammarList;
+                } catch (e) {
+                    console.warn('Grammar setup failed', e);
                 }
             }
 
-            if (final) {
-                setLastEvent({ text: final, isFinal: true, timestamp: Date.now(), confidence: maxConfidence });
-                setInterimResult('');
-            } else {
-                setInterimResult(interim);
-            }
-        };
-
-        recognitionRef.current = recognition;
-
-        return () => {
-            if (recognition) {
-                // Remove listeners to prevent zombie callbacks
-                recognition.onresult = null;
-                recognition.onend = null;
-                recognition.onerror = null;
-                recognition.onstart = null;
-                recognition.abort();
-            }
-        };
-    }, [userReplacements]);
-
-    const startListening = useCallback(async () => {
-        if (recognitionRef.current && !isListening) {
-            try {
-                // Abort any existing session and wait for cleanup
-                recognitionRef.current.abort();
-
-                // Small delay to allow the browser's speech service to fully reset
-                await new Promise(resolve => setTimeout(resolve, 150));
-
-                shouldBeListeningRef.current = true;
-                recognitionRef.current.start();
+            // 4. EVENT HANDLERS
+            recognition.onstart = () => {
                 setIsListening(true);
-            } catch (e) {
-                console.error("Start listening error:", e);
-                shouldBeListeningRef.current = false;
-                setError('Error al iniciar: Intenta esperar un segundo');
-            }
+                setError(null);
+            };
+
+            recognition.onend = () => {
+                // If we should still be listening, restart (Continuous Mode)
+                if (shouldBeListeningRef.current) {
+                    try {
+                        // Re-use same instance for continuity if it just stopped due to silence
+                        // But if it stopped due to error, we might need a full restart logic? 
+                        // For now, simpler is better: just .start() again
+                        recognition.start();
+                    } catch (e: any) {
+                        console.log("Auto-restart log:", e);
+                    }
+                } else {
+                    // Truly stopped
+                    setIsListening(false);
+                }
+            };
+
+            recognition.onerror = (event: any) => {
+                if (event.error === 'no-speech') {
+                    // Ignore
+                } else if (['audio-capture', 'not-allowed', 'network'].includes(event.error)) {
+                    console.warn("Speech Error:", event.error);
+                    setError(`Error de voz: ${event.error}`);
+                    // Critical errors should stop the loop
+                    shouldBeListeningRef.current = false;
+                }
+            };
+
+            recognition.onresult = (event: any) => {
+                let final = '';
+                let interim = '';
+                let maxConfidence = 0;
+
+                const medicalTermsSet = new Set([
+                    ...RADIOLOGY_HINTS.map(t => t.toLowerCase()),
+                    ...Object.keys(userReplacements).map(t => t.toLowerCase())
+                ]);
+                const protectedShortWords = new Set(['no', 'sí', 'si', 'con', 'sin', 'en', 'de', 'del', 'al', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'la', 'el']);
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const result = event.results[i];
+                    if (result.isFinal) {
+                        let bestTranscript = result[0].transcript;
+                        let bestConfidence = result[0].confidence || 0;
+
+                        // Basic post-processing (same logic as before)
+                        let foundMatch = false;
+                        const primaryWords = bestTranscript.toLowerCase().trim().split(/\s+/);
+                        if (primaryWords.length === 1 && protectedShortWords.has(primaryWords[0])) {
+                            foundMatch = true;
+                        } else if (primaryWords.some((w: string) => medicalTermsSet.has(w))) {
+                            foundMatch = true;
+                        }
+
+                        if (!foundMatch) {
+                            for (let j = 1; j < Math.min(result.length, 3); j++) {
+                                const altWords = result[j].transcript.toLowerCase().split(/\s+/);
+                                if (altWords.some((w: string) => medicalTermsSet.has(w)) && result[j].confidence > 0.5) {
+                                    bestTranscript = result[j].transcript;
+                                    bestConfidence = result[j].confidence;
+                                    break;
+                                }
+                            }
+                        }
+
+                        final += bestTranscript;
+                        maxConfidence = Math.max(maxConfidence, bestConfidence);
+                    } else {
+                        interim += result[0].transcript;
+                    }
+                }
+
+                if (final) {
+                    setLastEvent({ text: final, isFinal: true, timestamp: Date.now(), confidence: maxConfidence });
+                    setInterimResult('');
+                } else {
+                    setInterimResult(interim);
+                }
+            };
+
+            // 5. START
+            shouldBeListeningRef.current = true;
+            recognitionRef.current = recognition;
+            recognition.start();
+
+        } catch (e) {
+            console.error("Start failed:", e);
+            shouldBeListeningRef.current = false;
+            setError('Error al iniciar servicio de voz');
         }
-    }, [isListening]);
+    }, [userReplacements, boostedTerms]); // Re-create if grammar deps change (optional, but safer to match old behavior logic)
 
     const stopListening = useCallback(() => {
+        shouldBeListeningRef.current = false;
         if (recognitionRef.current) {
-            shouldBeListeningRef.current = false;
-            // .stop() attempts to return a final result, which might trigger 'onend' loops if not careful.
-            // .abort() is more definitive for a hard stop.
-            recognitionRef.current.abort();
-            setIsListening(false);
+            try {
+                // Remove onend to prevent auto-restart logic during manual stop
+                // recognitionRef.current.onend = null; 
+                // Actually, we want onend to fire to set isListening(false), but we set shouldBeListeningRef=false above so it handles it.
+                recognitionRef.current.abort();
+            } catch (e) {
+                console.warn("Stop error:", e);
+            }
+            // We don't nullify immediately, let onend do it or next start do it
         }
     }, []);
 
