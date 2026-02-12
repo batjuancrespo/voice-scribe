@@ -191,12 +191,14 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         };
     }, [userReplacements]);
 
-    const startListening = useCallback(() => {
+    const startListening = useCallback(async () => {
         if (recognitionRef.current && !isListening) {
             try {
-                // Determine if we need to reset the instance (optional, but aborting is safer)
-                // Aborting first clears any "stopping" or "zombie" states from previous sessions
+                // Abort any existing session and wait for cleanup
                 recognitionRef.current.abort();
+
+                // Small delay to allow the browser's speech service to fully reset
+                await new Promise(resolve => setTimeout(resolve, 150));
 
                 shouldBeListeningRef.current = true;
                 recognitionRef.current.start();
@@ -204,7 +206,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
             } catch (e) {
                 console.error("Start listening error:", e);
                 shouldBeListeningRef.current = false;
-                setError('Error al iniciar voz (intenta recargar)');
+                setError('Error al iniciar: Intenta esperar un segundo');
             }
         }
     }, [isListening]);
