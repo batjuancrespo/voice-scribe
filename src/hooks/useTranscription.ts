@@ -178,6 +178,17 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
         };
 
         recognitionRef.current = recognition;
+
+        return () => {
+            if (recognition) {
+                // Remove listeners to prevent zombie callbacks
+                recognition.onresult = null;
+                recognition.onend = null;
+                recognition.onerror = null;
+                recognition.onstart = null;
+                recognition.abort();
+            }
+        };
     }, [userReplacements]);
 
     const startListening = useCallback(() => {
@@ -201,7 +212,9 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
     const stopListening = useCallback(() => {
         if (recognitionRef.current) {
             shouldBeListeningRef.current = false;
-            recognitionRef.current.stop();
+            // .stop() attempts to return a final result, which might trigger 'onend' loops if not careful.
+            // .abort() is more definitive for a hard stop.
+            recognitionRef.current.abort();
             setIsListening(false);
         }
     }, []);
