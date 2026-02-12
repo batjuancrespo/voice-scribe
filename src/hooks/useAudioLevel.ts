@@ -83,14 +83,23 @@ export const useAudioLevel = (): AudioLevelHook => {
     const cleanup = () => {
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
         }
 
         if (microphoneRef.current) {
-            microphoneRef.current.disconnect();
+            try {
+                microphoneRef.current.disconnect();
+            } catch (e) {
+                console.warn('Error disconnecting microphone:', e);
+            }
+            microphoneRef.current = null;
         }
 
         if (audioContextRef.current) {
-            audioContextRef.current.close();
+            if (audioContextRef.current.state !== 'closed') {
+                audioContextRef.current.close().catch(e => console.warn('Error closing AudioContext:', e));
+            }
+            audioContextRef.current = null;
         }
 
         setAudioLevel(0);

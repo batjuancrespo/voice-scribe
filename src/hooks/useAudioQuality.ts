@@ -98,10 +98,26 @@ export const useAudioQuality = (isListening: boolean) => {
     }, [calculateRMS]); // Removed stats.quality dependency to avoid infinite loop or flickering
 
     const cleanupAudio = useCallback(() => {
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        microphoneRef.current?.disconnect();
-        audioContextRef.current?.close();
-        audioContextRef.current = null;
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
+        if (microphoneRef.current) {
+            try {
+                microphoneRef.current.disconnect();
+            } catch (e) {
+                console.warn('Error disconnecting microphone:', e);
+            }
+            microphoneRef.current = null;
+        }
+
+        if (audioContextRef.current) {
+            if (audioContextRef.current.state !== 'closed') {
+                audioContextRef.current.close().catch(e => console.warn('Error closing audio context:', e));
+            }
+            audioContextRef.current = null;
+        }
     }, []);
 
     const initializeAudio = useCallback(async () => {
