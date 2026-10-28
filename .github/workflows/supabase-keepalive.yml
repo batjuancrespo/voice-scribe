@@ -6,8 +6,10 @@ name: Supabase Keep Alive
 # actividad.
 #
 # Requiere secrets del repo:
-#   SUPABASE_URL        -> https://<ref>.supabase.co
-#   SUPABASE_ANON_KEY   -> clave anon (pública, ya está en el bundle del cliente)
+#   SUPABASE_URL              -> https://<ref>.supabase.co (BD de producción / Vercel)
+#   SUPABASE_ANON_KEY         -> clave anon de producción
+#   SUPABASE_URL_REPLICA      -> https://<ref>.supabase.co (BD de la réplica / Cloudflare Pages)
+#   SUPABASE_ANON_KEY_REPLICA -> clave anon de la réplica
 
 on:
   schedule:
@@ -18,7 +20,7 @@ jobs:
   heartbeat:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase (actividad en la BD)
+      - name: Ping Supabase PRODUCCION (actividad en la BD)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -39,4 +41,27 @@ jobs:
             cat /tmp/ping_body.txt || true
             exit 1
           fi
-          echo "Latido enviado: el proyecto sigue activo."
+          echo "Latido enviado (produccion): el proyecto sigue activo."
+
+      - name: Ping Supabase REPLICA (actividad en la BD)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_REPLICA }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_REPLICA }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::notice::Secrets de la réplica no configurados; se omite su latido."
+            exit 0
+          fi
+
+          http=$(curl -sS -o /tmp/ping_body_replica.txt -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/profiles?select=id" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+
+          echo "HTTP $http"
+          if [ "$http" != "200" ]; then
+            echo "::warning::Respuesta inesperada de la réplica ($http). Puede estar pausada; revísala en el dashboard."
+            cat /tmp/ping_body_replica.txt || true
+            exit 1
+          fi
+          echo "Latido enviado (replica): el proyecto sigue activo."
