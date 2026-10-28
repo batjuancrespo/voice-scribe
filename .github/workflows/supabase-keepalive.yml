@@ -1,0 +1,42 @@
+name: Supabase Keep Alive
+
+# Evita que Supabase pause el proyecto (plan Free: se pausa tras 7 días sin
+# actividad de base de datos). Hace una consulta diaria a la API REST de
+# Supabase con la clave anon: esa consulta llega a Postgres y cuenta como
+# actividad.
+#
+# Requiere secrets del repo:
+#   SUPABASE_URL        -> https://<ref>.supabase.co
+#   SUPABASE_ANON_KEY   -> clave anon (pública, ya está en el bundle del cliente)
+
+on:
+  schedule:
+    - cron: "0 5 * * *" # cada día 05:00 UTC
+  workflow_dispatch: # poder lanzarlo a mano desde Actions
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase (actividad en la BD)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Faltan los secrets SUPABASE_URL y/o SUPABASE_ANON_KEY en el repo."
+            exit 1
+          fi
+
+          http=$(curl -sS -o /tmp/ping_body.txt -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/profiles?select=id" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+
+          echo "HTTP $http"
+          if [ "$http" != "200" ]; then
+            echo "::warning::Respuesta inesperada de Supabase ($http). Si es 5xx puede que el proyecto esté pausado u ocioso; revísalo en el dashboard."
+            cat /tmp/ping_body.txt || true
+            exit 1
+          fi
+          echo "Latido enviado: el proyecto sigue activo."
