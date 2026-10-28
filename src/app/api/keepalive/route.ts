@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// Requerido por @cloudflare/next-on-pages: Cloudflare Pages ejecuta las
+// rutas dinámicas en el Edge Runtime.
+export const runtime = 'edge';
+
 // Ruta de 'keep-alive': mantiene activo el proyecto de Supabase (plan Free).
 // Vercel Cron la invoca una vez al día (ver vercel.json). Cada invocación
 // hace una consulta mínima a la API REST de Supabase; esa consulta llega a

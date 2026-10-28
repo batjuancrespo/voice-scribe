@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
+// Requerido por @cloudflare/next-on-pages: Cloudflare Pages ejecuta las
+// rutas dinámicas en el Edge Runtime.
+export const runtime = 'edge';
+
 
 
 export async function POST(req: Request) {
