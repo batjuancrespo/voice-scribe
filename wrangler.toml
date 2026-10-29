@@ -3,4 +3,12 @@ compatibility_flags = [ "nodejs_compat" ]
 compatibility_date = "2024-09-23"
 pages_build_output_dir = ".vercel/output/static"
 
+# Variables del build/deploy (BD de la replica). Son publicas por diseño:
+# viajan en el bundle del navegador. GEMINI_API_KEY vive como secreto en el
+# dashboard de Cloudflare, NO aqui.
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://iplqpnyvgtvbmswfxodk.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwbHFwbnl2Z3R2Ym1zd2Z4b2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNjk3ODMsImV4cCI6MjA4MDk0NTc4M30._1w4c8CbIZGgFUeC4Ct_c80j30uka172gE8ONbNykAo"
+NODE_VERSION = "20"
+
 # Force deployment trigger
