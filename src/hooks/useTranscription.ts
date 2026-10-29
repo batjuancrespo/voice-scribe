@@ -27,6 +27,14 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
     const recognitionRef = useRef<any>(null);
     const shouldBeListeningRef = useRef(false);
 
+    // Ref siempre fresco: las sesiones de reconocimiento en modo continuo
+    // reutilizan la misma instancia (con su closure), asi que el vocabulario
+    // debe leerse en el momento del evento y no al crear la instancia.
+    const userReplacementsRef = useRef(userReplacements);
+    useEffect(() => {
+        userReplacementsRef.current = userReplacements;
+    }, [userReplacements]);
+
     // Explicit cleanup on unmount - ensures no zombie instances
     useEffect(() => {
         return () => {
@@ -90,7 +98,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
                         });
                     };
 
-                    Object.keys(userReplacements).forEach(processTerm);
+                    Object.keys(userReplacementsRef.current).forEach(processTerm);
                     RADIOLOGY_HINTS.forEach(processTerm);
 
                     // LIMIT GRAMMAR SIZE: Too many terms cause "network" errors in Chrome servers.
@@ -147,7 +155,7 @@ export const useTranscription = (userReplacements: Record<string, string> = {}, 
 
                 const medicalTermsSet = new Set([
                     ...RADIOLOGY_HINTS.map(t => t.toLowerCase()),
-                    ...Object.keys(userReplacements).map(t => t.toLowerCase())
+                    ...Object.keys(userReplacementsRef.current).map(t => t.toLowerCase())
                 ]);
                 const protectedShortWords = new Set(['no', 'sí', 'si', 'con', 'sin', 'en', 'de', 'del', 'al', 'punto', 'coma', 'dos', 'guion', 'y', 'o', 'la', 'el']);
 
