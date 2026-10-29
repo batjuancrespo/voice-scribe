@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 // Requerido por @cloudflare/next-on-pages: Cloudflare Pages ejecuta las
 // rutas dinámicas en el Edge Runtime.
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 // Ruta de 'keep-alive': mantiene activo el proyecto de Supabase (plan Free).
 // Vercel Cron la invoca una vez al día (ver vercel.json). Cada invocación
@@ -26,7 +27,6 @@ export async function GET() {
                 apikey: supabaseKey,
                 Authorization: `Bearer ${supabaseKey}`,
             },
-            cache: 'no-store',
         });
 
         if (!res.ok) {
